@@ -18,7 +18,7 @@ class AST {
 
     ExprResult Evaluate() const;
 
-    ~AST();
+    void Print(std::ostream& out) const;
 
    private:
     std::unique_ptr<Expr> root_;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "decomposition/ast.h"
 #include "decomposition/expression.h"
 #include "domain/domain.h"
 
@@ -29,12 +30,12 @@ int main() {
     auto expr7 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
                            domain::Scalar{45});
 
-    expr_set.insert(*root1);
+    // expr_set.insert(*root1);
+    //
+    // std::cout << expr_set.count(*root2) << std::endl;
+    // std::cout << expr_set.count(*expr7) << std::endl;
 
-    std::cout << expr_set.count(*root2) << std::endl;
-    std::cout << expr_set.count(*expr7) << std::endl;
+    AST ast(std::move(root1));
 
-    root1->Print(std::cout);
-
-    // std::cout << std::get<domain::Scalar>(root->Evaluate()) << std::endl;
+    ast.Print(std::cout);
 }

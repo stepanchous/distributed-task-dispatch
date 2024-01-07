@@ -13,6 +13,10 @@ size_t ExprHasher::operator()(const Expr& expr) const {
     return typeid(expr).hash_code() + HASH_CONST * expr.Hash();
 }
 
+size_t ExprPtrHasher::operator()(const std::unique_ptr<Expr>& expr) {
+    return ExprHasher{}(*expr);
+}
+
 bool ExprEqual::operator()(const Expr& lhs, const Expr& rhs) const {
     return lhs.operator==(rhs);
 }
@@ -57,6 +61,30 @@ class ReduceExpr final : public Expr {
         }
 
         return result;
+    }
+
+    ExprType GetType() const override {
+        ExprType type;
+
+        switch (type_) {
+            case Type::min:
+                type = re_min;
+                break;
+            case Type::max:
+                type = re_max;
+                break;
+            case Type::mul:
+                type = re_mul;
+                break;
+            case Type::sum:
+                type = re_sum;
+                break;
+            case Type::size:
+                type = re_size;
+                break;
+        }
+
+        return type;
     }
 
     void Print(std::ostream& out) const override {
@@ -120,6 +148,24 @@ class MapExpr final : public Expr {
         }
 
         return result;
+    }
+
+    ExprType GetType() const override {
+        ExprType type;
+
+        switch (type_) {
+            case Type::mul:
+                type = me_mul;
+                break;
+            case Type::add:
+                type = me_add;
+                break;
+            case Type::div:
+                type = me_div;
+                break;
+        }
+
+        return type;
     }
 
     void Print(std::ostream& out) const override {
@@ -186,6 +232,27 @@ class ListOpExpr final : public Expr {
         return result;
     }
 
+    ExprType GetType() const override {
+        ExprType type;
+
+        switch (type_) {
+            case Type::mul:
+                type = lo_mul;
+                break;
+            case Type::add:
+                type = lo_add;
+                break;
+            case Type::div:
+                type = lo_div;
+                break;
+            case Type::dot:
+                type = lo_dot;
+                break;
+        }
+
+        return type;
+    }
+
     void Print(std::ostream& out) const override {
         using magic_enum::iostream_operators::operator<<;
         lhs_->Print(out);
@@ -223,6 +290,8 @@ class ListExpr final : public Expr {
 
     ExprResult Evaluate() const override { return l_; }
 
+    ExprType GetType() const override { return ExprType::list; }
+
     void Print(std::ostream& out) const override { out << "List" << std::endl; }
 
     bool operator==(const Expr& rhs) const override {
@@ -244,6 +313,8 @@ class ScalarExpr final : public Expr {
     explicit ScalarExpr(const domain::Scalar& x) : x_(x) {}
 
     ExprResult Evaluate() const override { return x_; }
+
+    ExprType GetType() const override { return ExprType::scalar; }
 
     void Print(std::ostream& out) const override {
         out << "Scalar" << std::endl;

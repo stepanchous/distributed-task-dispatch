@@ -40,6 +40,7 @@ class Expr {
 
     virtual ~Expr() = default;
     virtual ExprResult Evaluate() const = 0;
+    virtual ExprType GetType() const = 0;
     virtual void Print(std::ostream& out) const = 0;
 
     virtual bool operator==(const Expr& rhs) const = 0;
@@ -52,6 +53,10 @@ class Expr {
 
 struct ExprHasher {
     size_t operator()(const Expr& expr) const;
+};
+
+struct ExprPtrHasher {
+    size_t operator()(const std::unique_ptr<Expr>& expr);
 };
 
 struct ExprEqual {
