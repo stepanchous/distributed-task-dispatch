@@ -3,6 +3,7 @@
 
 #include "decomposition/ast.h"
 #include "decomposition/expression.h"
+#include "decomposition/expression_visitors.h"
 #include "domain/domain.h"
 
 using namespace dcmp;
@@ -37,5 +38,7 @@ int main() {
 
     AST ast(std::move(root1));
 
-    ast.Print(std::cout);
+    PrintVisitor print_visitor(std::cout);
+
+    ast.PostorderTraverse(print_visitor);
 }

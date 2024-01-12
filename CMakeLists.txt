@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+set (Boost_USE_STATIC_LIBS ON)
+set (Boost_USE_MULTITHREADED ON)
+set (Boost_USE_STATIC_RUNTIME OFF)
+
+find_package(Boost 1.78.0 COMPONENTS REQUIRED graph)
+
 include_directories(lib)
 
 add_compile_options(-Wall)
@@ -27,10 +33,10 @@ set(PROJECT_SOURCES
   ${DECOMPOSITION_DIR}/ast.cpp
   ${DECOMPOSITION_DIR}/expression.h
   ${DECOMPOSITION_DIR}/expression.cpp
+  ${DECOMPOSITION_DIR}/expression_visitors.h
+  ${DECOMPOSITION_DIR}/expression_visitors.cpp
   ${DOMAIN_DIR}/domain.h
   ${DOMAIN_DIR}/domain.cpp)
 
-add_executable(dispatch
-    ${PROJECT_SOURCES})
-
-
+add_executable(dispatch ${PROJECT_SOURCES})
+target_link_libraries(dispatch PRIVATE Boost::graph)

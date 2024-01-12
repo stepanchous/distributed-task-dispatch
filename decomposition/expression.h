@@ -29,6 +29,7 @@ enum ExprType {
 };
 
 struct ExprHasher;
+class ExprVisitor;
 
 class Expr {
    public:
@@ -41,7 +42,7 @@ class Expr {
     virtual ~Expr() = default;
     virtual ExprResult Evaluate() const = 0;
     virtual ExprType GetType() const = 0;
-    virtual void Print(std::ostream& out) const = 0;
+    virtual void PostorderTraverse(ExprVisitor& visitor) const = 0;
 
     virtual bool operator==(const Expr& rhs) const = 0;
 
@@ -61,6 +62,12 @@ struct ExprPtrHasher {
 
 struct ExprEqual {
     bool operator()(const Expr& lhs, const Expr& rhs) const;
+};
+
+class ExprVisitor {
+   public:
+    virtual ~ExprVisitor() = default;
+    virtual void Visit(const Expr& expr) = 0;
 };
 
 }  // namespace dcmp

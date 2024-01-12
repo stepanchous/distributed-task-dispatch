@@ -1,8 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <variant>
-#include <vector>
 
 #include "expression.h"
 
@@ -18,7 +16,7 @@ class AST {
 
     ExprResult Evaluate() const;
 
-    void Print(std::ostream& out) const;
+    void PostorderTraverse(ExprVisitor& visitor) const;
 
    private:
     std::unique_ptr<Expr> root_;

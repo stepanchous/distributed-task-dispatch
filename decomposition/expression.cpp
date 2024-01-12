@@ -87,12 +87,6 @@ class ReduceExpr final : public Expr {
         return type;
     }
 
-    void Print(std::ostream& out) const override {
-        using magic_enum::iostream_operators::operator<<;
-        operand_->Print(out);
-        out << type_ << std::endl;
-    }
-
     bool operator==(const Expr& rhs) const override {
         if (typeid(*this) != typeid(rhs)) {
             return false;
@@ -107,6 +101,11 @@ class ReduceExpr final : public Expr {
     size_t Hash() const override {
         return static_cast<size_t>(type_) +
                HASH_CONST * ExprHasher{}(*operand_);
+    }
+
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        operand_->PostorderTraverse(visitor);
+        visitor.Visit(*this);
     }
 
    private:
@@ -168,11 +167,10 @@ class MapExpr final : public Expr {
         return type;
     }
 
-    void Print(std::ostream& out) const override {
-        using magic_enum::iostream_operators::operator<<;
-        lhs_->Print(out);
-        rhs_->Print(out);
-        out << type_ << std::endl;
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        lhs_->PostorderTraverse(visitor);
+        rhs_->PostorderTraverse(visitor);
+        visitor.Visit(*this);
     }
 
     bool operator==(const Expr& rhs) const override {
@@ -253,11 +251,10 @@ class ListOpExpr final : public Expr {
         return type;
     }
 
-    void Print(std::ostream& out) const override {
-        using magic_enum::iostream_operators::operator<<;
-        lhs_->Print(out);
-        rhs_->Print(out);
-        out << type_ << std::endl;
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        lhs_->PostorderTraverse(visitor);
+        rhs_->PostorderTraverse(visitor);
+        visitor.Visit(*this);
     }
 
     bool operator==(const Expr& rhs) const override {
@@ -292,7 +289,9 @@ class ListExpr final : public Expr {
 
     ExprType GetType() const override { return ExprType::list; }
 
-    void Print(std::ostream& out) const override { out << "List" << std::endl; }
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        visitor.Visit(*this);
+    }
 
     bool operator==(const Expr& rhs) const override {
         if (typeid(*this) != typeid(rhs)) {
@@ -316,8 +315,8 @@ class ScalarExpr final : public Expr {
 
     ExprType GetType() const override { return ExprType::scalar; }
 
-    void Print(std::ostream& out) const override {
-        out << "Scalar" << std::endl;
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        visitor.Visit(*this);
     }
 
     bool operator==(const Expr& rhs) const override {
