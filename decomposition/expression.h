@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <optional>
-#include <ostream>
 #include <variant>
 
 #include "domain/domain.h"
@@ -10,8 +9,10 @@
 namespace dcmp {
 
 using ExprResult = std::variant<domain::List, domain::Scalar>;
+using ExprData = std::variant<std::monostate, domain::List, domain::Scalar>;
 
 enum ExprType {
+    invalid = 0,
     re_min,
     re_max,
     re_mul,
@@ -24,6 +25,11 @@ enum ExprType {
     lo_mul,
     lo_div,
     lo_dot,
+    so_add,
+    so_mul,
+    so_div,
+    so_max,
+    so_min,
     list,
     scalar,
 };
@@ -43,25 +49,11 @@ class Expr {
     virtual ExprResult Evaluate() const = 0;
     virtual ExprType GetType() const = 0;
     virtual void PostorderTraverse(ExprVisitor& visitor) const = 0;
+    virtual const Expr* GetLhs() const = 0;
+    virtual const Expr* GetRhs() const = 0;
+    virtual ExprData GetData() const = 0;
 
     virtual bool operator==(const Expr& rhs) const = 0;
-
-   protected:
-    virtual size_t Hash() const = 0;
-
-    friend ExprHasher;
-};
-
-struct ExprHasher {
-    size_t operator()(const Expr& expr) const;
-};
-
-struct ExprPtrHasher {
-    size_t operator()(const std::unique_ptr<Expr>& expr);
-};
-
-struct ExprEqual {
-    bool operator()(const Expr& lhs, const Expr& rhs) const;
 };
 
 class ExprVisitor {

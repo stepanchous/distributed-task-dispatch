@@ -32,6 +32,9 @@ List Sum(const List& l1, const List& l2);
 List Mul(const List& l1, const List& l2);
 List Div(const List& l1, const List& l2);
 
+Scalar Mul(const Scalar& x1, const Scalar& x2);
+Scalar Div(const Scalar& x1, const Scalar& x2);
+Scalar Sum(const Scalar& x1, const Scalar& x2);
 Scalar Min(const Scalar& x1, const Scalar& x2);
 Scalar Max(const Scalar& x1, const Scalar& x2);
 

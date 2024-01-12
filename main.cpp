@@ -1,44 +1,83 @@
+#include <minibench/log_duration.h>
+
+#include <boost/graph/graphviz.hpp>
 #include <iostream>
-#include <unordered_set>
+#include <magic_enum/magic_enum_iostream.hpp>
 
 #include "decomposition/ast.h"
+#include "decomposition/dag.h"
+#include "decomposition/dag_visitor.h"
 #include "decomposition/expression.h"
-#include "decomposition/expression_visitors.h"
 #include "domain/domain.h"
 
 using namespace dcmp;
 
+template <class Name>
+class MyLabelWriter {
+   public:
+    MyLabelWriter(Name name) : name_(name) {}
+
+    template <class VertexOrEdge>
+    void operator()(std::ostream& out, const VertexOrEdge& v) {
+        using magic_enum::iostream_operators::operator<<;
+        out << "[label=\"" << name_[v] << "\"]";
+    }
+
+   private:
+    Name name_;
+};
+
 int main() {
-    auto expr1 =
-        Expr::New(ExprType::list, nullptr, nullptr, domain::List{1, 2, 3});
-    auto expr2 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
-                           domain::Scalar{1});
-    auto expr3 =
-        Expr::New(ExprType::me_add, std::move(expr1), std::move(expr2));
-    auto root1 = Expr::New(ExprType::re_sum, std::move(expr3));
+    domain::List l(100);
 
-    auto expr4 =
-        Expr::New(ExprType::list, nullptr, nullptr, domain::List{1, 2, 3});
-    auto expr5 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
-                           domain::Scalar{1});
-    auto expr6 =
-        Expr::New(ExprType::me_add, std::move(expr4), std::move(expr5));
-    auto root2 = Expr::New(ExprType::re_sum, std::move(expr6));
+    auto l1 = Expr::New(ExprType::list, nullptr, nullptr, l);
+    auto l2 = Expr::New(ExprType::list, nullptr, nullptr, l);
+    auto sum1 = Expr::New(ExprType::re_sum, std::move(l1));
+    auto prod1 = Expr::New(ExprType::re_mul, std::move(l2));
+    auto max = Expr::New(ExprType::so_max, std::move(sum1), std::move(prod1));
 
-    std::unordered_set<std::reference_wrapper<Expr>, ExprHasher, ExprEqual>
-        expr_set;
+    auto l3 = Expr::New(ExprType::list, nullptr, nullptr, l);
+    auto l4 = Expr::New(ExprType::list, nullptr, nullptr, l);
+    auto sum2 = Expr::New(ExprType::re_sum, std::move(l3));
+    auto prod2 = Expr::New(ExprType::re_mul, std::move(l4));
+    auto min = Expr::New(ExprType::so_max, std::move(sum2), std::move(prod2));
 
-    auto expr7 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
-                           domain::Scalar{45});
+    auto r = Expr::New(ExprType::so_add, std::move(max), std::move(min));
 
+    // auto expr3 =
+    //     Expr::New(ExprType::me_add, std::move(expr1), std::move(expr2));
+    // auto root1 = Expr::New(ExprType::re_sum, std::move(expr3));
+    //
+    // auto expr4 =
+    //     Expr::New(ExprType::list, nullptr, nullptr, l);
+    // auto expr5 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
+    //                        domain::Scalar{1});
+    // auto expr6 =
+    //     Expr::New(ExprType::me_add, std::move(expr4), std::move(expr5));
+    // auto root2 = Expr::New(ExprType::re_sum, std::move(expr6));
+    //
+    // std::unordered_set<std::reference_wrapper<Expr>, ExprHasher, ExprEqual>
+    //     expr_set;
+    //
+    // auto expr7 = Expr::New(ExprType::scalar, nullptr, nullptr, std::nullopt,
+    //                        domain::Scalar{45});
+    //
     // expr_set.insert(*root1);
     //
     // std::cout << expr_set.count(*root2) << std::endl;
     // std::cout << expr_set.count(*expr7) << std::endl;
 
-    AST ast(std::move(root1));
+    AST ast(std::move(r));
 
-    PrintVisitor print_visitor(std::cout);
+    DagVisitor dag_visitor;
 
-    ast.PostorderTraverse(print_visitor);
+    {
+        LOG_DURATION("Traverse with number value method");
+        ast.PostorderTraverse(dag_visitor);
+    }
+
+    Graph graph = dag_visitor.BuildGraph();
+
+    auto ew = MyLabelWriter{get(&VertexProperties::type, graph)};
+    boost::write_graphviz(std::cout, graph, ew);
 }

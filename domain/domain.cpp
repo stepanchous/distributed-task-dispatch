@@ -28,6 +28,12 @@ Scalar Sum(const List& l) {
         [](const Scalar& lhs, const Scalar& rhs) { return lhs + rhs; });
 }
 
+Scalar Mul(const Scalar& x1, const Scalar& x2) { return x1 * x2; }
+
+Scalar Div(const Scalar& x1, const Scalar& x2) { return x1 / x2; }
+
+Scalar Sum(const Scalar& x1, const Scalar& x2) { return x1 + x2; }
+
 Scalar Min(const List& l) { return *std::min(l.begin(), l.end()); }
 
 Scalar Max(const List& l) { return *std::min(l.begin(), l.end()); }

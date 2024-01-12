@@ -2,13 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(dispatch VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set (Boost_USE_STATIC_LIBS ON)
-set (Boost_USE_MULTITHREADED ON)
-set (Boost_USE_STATIC_RUNTIME OFF)
 
 find_package(Boost 1.78.0 COMPONENTS REQUIRED graph)
 
@@ -33,6 +29,8 @@ set(PROJECT_SOURCES
   ${DECOMPOSITION_DIR}/ast.cpp
   ${DECOMPOSITION_DIR}/expression.h
   ${DECOMPOSITION_DIR}/expression.cpp
+  ${DECOMPOSITION_DIR}/dag_visitor.h
+  ${DECOMPOSITION_DIR}/dag_visitor.cpp
   ${DECOMPOSITION_DIR}/expression_visitors.h
   ${DECOMPOSITION_DIR}/expression_visitors.cpp
   ${DOMAIN_DIR}/domain.h
