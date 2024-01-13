@@ -10,11 +10,13 @@ class AST {
    public:
     explicit AST(std::unique_ptr<Expr> root);
 
+    AST(const AST&) = delete;
+
+    AST& operator=(const AST&) = delete;
+
     AST(AST&&) = default;
 
     AST& operator=(AST&&) = default;
-
-    ExprResult Evaluate() const;
 
     void PostorderTraverse(ExprVisitor& visitor) const;
 

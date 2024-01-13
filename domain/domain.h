@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -8,6 +9,7 @@ namespace domain {
 
 using Scalar = int;
 using List = std::vector<Scalar>;
+using VariableId = std::string;
 using ExprResult = std::variant<List, Scalar>;
 
 static_assert(std::is_arithmetic_v<Scalar>, "Scalar must be arithmetic type");

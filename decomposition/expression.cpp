@@ -20,35 +20,6 @@ class ReduceExpr final : public Expr {
     explicit ReduceExpr(Type type, std::unique_ptr<Expr> operand)
         : type_(type), operand_(std::move(operand)) {}
 
-    ExprResult Evaluate() const override {
-        domain::Scalar result{};
-
-        switch (type_) {
-            case Type::min:
-                result =
-                    domain::Min(std::get<domain::List>(operand_->Evaluate()));
-                break;
-            case Type::max:
-                result =
-                    domain::Max(std::get<domain::List>(operand_->Evaluate()));
-                break;
-            case Type::mul:
-                result =
-                    domain::Mul(std::get<domain::List>(operand_->Evaluate()));
-                break;
-            case Type::sum:
-                result =
-                    domain::Sum(std::get<domain::List>(operand_->Evaluate()));
-                break;
-            case Type::size:
-                result =
-                    domain::Size(std::get<domain::List>(operand_->Evaluate()));
-                break;
-        }
-
-        return result;
-    }
-
     ExprType GetType() const override {
         ExprType type;
 
@@ -115,30 +86,6 @@ class MapExpr final : public Expr {
                      std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    ExprResult Evaluate() const override {
-        domain::List result;
-
-        switch (type_) {
-            case Type::add:
-                result =
-                    domain::Sum(std::get<domain::List>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::mul:
-                result =
-                    domain::Mul(std::get<domain::List>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::div:
-                result =
-                    domain::Div(std::get<domain::List>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-        }
-
-        return result;
-    }
-
     ExprType GetType() const override {
         ExprType type;
 
@@ -197,31 +144,6 @@ class ListOpExpr final : public Expr {
     explicit ListOpExpr(Type type, std::unique_ptr<Expr> lhs,
                         std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
-
-    ExprResult Evaluate() const override {
-        domain::ExprResult result;
-
-        switch (type_) {
-            case Type::add:
-                result = domain::Sum(std::get<domain::List>(lhs_->Evaluate()),
-                                     std::get<domain::List>(rhs_->Evaluate()));
-                break;
-            case Type::mul:
-                result = domain::Mul(std::get<domain::List>(lhs_->Evaluate()),
-                                     std::get<domain::List>(rhs_->Evaluate()));
-                break;
-            case Type::div:
-                result = domain::Div(std::get<domain::List>(lhs_->Evaluate()),
-                                     std::get<domain::List>(rhs_->Evaluate()));
-                break;
-            case Type::dot:
-                result = domain::Dot(std::get<domain::List>(lhs_->Evaluate()),
-                                     std::get<domain::List>(rhs_->Evaluate()));
-                break;
-        }
-
-        return result;
-    }
 
     ExprType GetType() const override {
         ExprType type;
@@ -285,40 +207,6 @@ class ScalarOpExpr final : public Expr {
                           std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    ExprResult Evaluate() const override {
-        domain::ExprResult result;
-
-        switch (type_) {
-            case Type::add:
-                result =
-                    domain::Sum(std::get<domain::Scalar>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::mul:
-                result =
-                    domain::Mul(std::get<domain::Scalar>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::div:
-                result =
-                    domain::Div(std::get<domain::Scalar>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::max:
-                result =
-                    domain::Max(std::get<domain::Scalar>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-            case Type::min:
-                result =
-                    domain::Min(std::get<domain::Scalar>(lhs_->Evaluate()),
-                                std::get<domain::Scalar>(rhs_->Evaluate()));
-                break;
-        }
-
-        return result;
-    }
-
     ExprType GetType() const override {
         ExprType type;
 
@@ -378,9 +266,7 @@ class ScalarOpExpr final : public Expr {
 
 class ListExpr final : public Expr {
    public:
-    explicit ListExpr(const domain::List& l) : l_(l) {}
-
-    ExprResult Evaluate() const override { return l_; }
+    explicit ListExpr(const domain::VariableId& l) : l_(l) {}
 
     ExprType GetType() const override { return ExprType::list; }
 
@@ -403,16 +289,14 @@ class ListExpr final : public Expr {
     ExprData GetData() const override { return l_; }
 
    private:
-    domain::List l_{};
+    domain::VariableId l_{};
 };
 
-class ScalarExpr final : public Expr {
+class ScalarConstExpr final : public Expr {
    public:
-    explicit ScalarExpr(const domain::Scalar& x) : x_(x) {}
+    explicit ScalarConstExpr(const domain::Scalar& x) : x_(x) {}
 
-    ExprResult Evaluate() const override { return x_; }
-
-    ExprType GetType() const override { return ExprType::scalar; }
+    ExprType GetType() const override { return ExprType::scalar_const; }
 
     void PostorderTraverse(ExprVisitor& visitor) const override {
         visitor.Visit(*this);
@@ -423,7 +307,7 @@ class ScalarExpr final : public Expr {
             return false;
         }
 
-        return this->x_ == dynamic_cast<const ScalarExpr&>(rhs).x_;
+        return this->x_ == dynamic_cast<const ScalarConstExpr&>(rhs).x_;
     }
 
     const Expr* GetLhs() const override { return nullptr; }
@@ -436,9 +320,37 @@ class ScalarExpr final : public Expr {
     domain::Scalar x_{};
 };
 
+class ScalarVarExpr final : public Expr {
+   public:
+    explicit ScalarVarExpr(const domain::VariableId& x) : x_(x) {}
+
+    ExprType GetType() const override { return ExprType::scalar_var; }
+
+    void PostorderTraverse(ExprVisitor& visitor) const override {
+        visitor.Visit(*this);
+    }
+
+    bool operator==(const Expr& rhs) const override {
+        if (typeid(*this) != typeid(rhs)) {
+            return false;
+        }
+
+        return this->x_ == dynamic_cast<const ScalarVarExpr&>(rhs).x_;
+    }
+
+    const Expr* GetLhs() const override { return nullptr; }
+
+    const Expr* GetRhs() const override { return nullptr; }
+
+    ExprData GetData() const override { return x_; }
+
+   private:
+    domain::VariableId x_{};
+};
+
 std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
                                 std::unique_ptr<Expr> operand2,
-                                std::optional<domain::List> l,
+                                std::optional<domain::VariableId> var_id,
                                 std::optional<domain::Scalar> x) {
     std::unique_ptr<Expr> expr = nullptr;
 
@@ -496,10 +408,10 @@ std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
                                                 std::move(operand2));
             break;
         case list:
-            expr = std::make_unique<ListExpr>(std::move(l.value()));
+            expr = std::make_unique<ListExpr>(std::move(var_id.value()));
             break;
-        case scalar:
-            expr = std::make_unique<ScalarExpr>(std::move(x.value()));
+        case scalar_const:
+            expr = std::make_unique<ScalarConstExpr>(std::move(x.value()));
             break;
         case so_add:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::add,
@@ -528,6 +440,8 @@ std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
             break;
         case invalid:
             throw std::invalid_argument("Invalid can not be passed to factory");
+            break;
+        case scalar_var:
             break;
     }
 

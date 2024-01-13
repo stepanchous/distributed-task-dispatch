@@ -24,8 +24,8 @@ void DagVisitor::Visit(const Expr& expr) {
     records_.emplace_back(record);
 }
 
-dcmp::Graph DagVisitor::BuildGraph() const {
-    dcmp::Graph graph;
+Graph DagVisitor::BuildGraph() const {
+    Graph graph;
 
     auto node = [&graph](const dcmp::VertexProperties& properties) {
         for (auto v : boost::make_iterator_range(boost::vertices(graph))) {

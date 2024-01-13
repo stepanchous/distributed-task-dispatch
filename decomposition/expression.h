@@ -8,8 +8,8 @@
 
 namespace dcmp {
 
-using ExprResult = std::variant<domain::List, domain::Scalar>;
-using ExprData = std::variant<std::monostate, domain::List, domain::Scalar>;
+using ExprData =
+    std::variant<std::monostate, domain::VariableId, domain::Scalar>;
 
 enum ExprType {
     invalid = 0,
@@ -31,7 +31,8 @@ enum ExprType {
     so_max,
     so_min,
     list,
-    scalar,
+    scalar_const,
+    scalar_var,
 };
 
 struct ExprHasher;
@@ -42,11 +43,10 @@ class Expr {
     static std::unique_ptr<Expr> New(
         ExprType, std::unique_ptr<Expr> operand1 = nullptr,
         std::unique_ptr<Expr> operand2 = nullptr,
-        std::optional<domain::List> l = std::nullopt,
+        std::optional<domain::VariableId> var_id = std::nullopt,
         std::optional<domain::Scalar> x = std::nullopt);
 
     virtual ~Expr() = default;
-    virtual ExprResult Evaluate() const = 0;
     virtual ExprType GetType() const = 0;
     virtual void PostorderTraverse(ExprVisitor& visitor) const = 0;
     virtual const Expr* GetLhs() const = 0;
