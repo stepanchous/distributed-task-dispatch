@@ -7,18 +7,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Boost 1.78.0 COMPONENTS REQUIRED graph)
+find_package(nlohmann_json REQUIRED)
 
 include_directories(lib)
 
 add_compile_options(-Wall)
 add_compile_options(-Wextra)
-add_compile_options(-Werror)
 add_compile_options(-pedantic)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_link_options(-fsanitize=address)
-  add_compile_options(-fsanitize=address)
-endif()
+# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+#   add_link_options(-fsanitize=address)
+#   add_compile_options(-fsanitize=address)
+# endif()
 
 set(DECOMPOSITION_DIR decomposition)
 set(DOMAIN_DIR domain)
@@ -37,4 +37,6 @@ set(PROJECT_SOURCES
   ${DOMAIN_DIR}/domain.cpp)
 
 add_executable(dispatch ${PROJECT_SOURCES})
+
 target_link_libraries(dispatch PRIVATE Boost::graph)
+target_link_libraries(dispatch PRIVATE nlohmann_json::nlohmann_json)

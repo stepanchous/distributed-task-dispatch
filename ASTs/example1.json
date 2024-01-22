@@ -1,0 +1,59 @@
+{
+    "ast": {
+        "me_mul": {
+            "lhs": {
+                "list": "K"
+            },
+            "rhs": {
+                "so_add": {
+                    "lhs": {
+                        "so_max": {
+                            "lhs": {
+                                "re_sum": {
+                                    "lhs": {
+                                        "list": "L"
+                                    }
+                                }
+                            },
+                            "rhs": {
+                                "lo_dot": {
+                                    "lhs": {
+                                        "list": "L"
+                                    },
+                                    "rhs": {
+                                        "list": "K"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "rhs": {
+                        "so_min": {
+                            "lhs": {
+                                "re_sum": {
+                                    "lhs": {
+                                        "list": "L"
+                                    }
+                                }
+                            },
+                            "rhs": {
+                                "re_mul": {
+                                    "lhs": {
+                                        "me_mul": {
+                                            "lhs": {
+                                                "list": "K"
+                                            },
+                                            "rhs": {
+                                                "scalar_var": "x"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

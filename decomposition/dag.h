@@ -16,4 +16,6 @@ struct VertexProperties {
 using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
                                     VertexProperties>;
 
+using VertexDescriptor = boost::graph_traits<Graph>::vertex_descriptor;
+
 }  // namespace dcmp

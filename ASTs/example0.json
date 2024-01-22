@@ -1,0 +1,42 @@
+{
+    "ast": {
+        "so_mul": {
+            "lhs" : {
+                "so_min": {
+                    "lhs": {
+                        "re_mul": {
+                            "lhs": {
+                                "list": "L"
+                            }
+                        }
+                    },
+                    "rhs": {
+                        "re_sum": {
+                            "lhs": {
+                                "list": "L"
+                            }
+                        }
+                    }
+                }
+            },
+            "rhs" : {
+                "so_max": {
+                    "lhs": {
+                        "re_mul": {
+                            "lhs": {
+                                "list": "L"
+                            }
+                        }
+                    },
+                    "rhs": {
+                        "re_sum": {
+                            "lhs": {
+                                "list": "L"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

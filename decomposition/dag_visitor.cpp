@@ -3,6 +3,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/detail/adjacency_list.hpp>
 #include <boost/range/iterator_range_core.hpp>
+#include <iterator>
 #include <magic_enum/magic_enum_iostream.hpp>
 
 #include "dag_visitor.h"
@@ -27,27 +28,43 @@ void DagVisitor::Visit(const Expr& expr) {
 Graph DagVisitor::BuildGraph() const {
     Graph graph;
 
-    auto node = [&graph](const dcmp::VertexProperties& properties) {
-        for (auto v : boost::make_iterator_range(boost::vertices(graph))) {
-            if (graph[v] == properties) {
-                return v;
-            }
-        }
-        return boost::add_vertex(properties, graph);
+    std::unordered_map<size_t, VertexDescriptor> id_to_descriptor;
+
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+        const VertexProperties vertex_properties = {.type = (*it)->GetType(),
+                                                    .data = (*it)->GetData()};
+
+        const VertexDescriptor descriptor =
+            boost::add_vertex(vertex_properties, graph);
+
+        id_to_descriptor[std::distance(records_.begin(), it)] = descriptor;
+    }
+
+    auto add_edge = [&](auto root_it, const Expr* operand) {
+        const VertexDescriptor root_descriptor =
+            id_to_descriptor.at(std::distance(records_.begin(), root_it));
+
+        auto operand_it = std::find_if(
+            records_.begin(), records_.end(),
+            [operand](const Expr* record) { return *record == *operand; });
+
+        VertexDescriptor operand_descriptor =
+            id_to_descriptor.at(std::distance(records_.begin(), operand_it));
+
+        boost::add_edge(root_descriptor, operand_descriptor, graph);
     };
 
-    for (const Expr* expr : records_) {
-        const Expr* lhs = expr->GetLhs();
-        const Expr* rhs = expr->GetRhs();
+    for (auto expr_it = records_.begin(); expr_it != records_.end();
+         ++expr_it) {
+        const Expr* lhs = (*expr_it)->GetLhs();
+        const Expr* rhs = (*expr_it)->GetRhs();
 
         if (lhs) {
-            boost::add_edge(node({expr->GetType(), expr->GetData()}),
-                            node({lhs->GetType(), lhs->GetData()}), graph);
+            add_edge(expr_it, lhs);
         }
 
         if (rhs) {
-            boost::add_edge(node({expr->GetType(), expr->GetData()}),
-                            node({rhs->GetType(), rhs->GetData()}), graph);
+            add_edge(expr_it, rhs);
         }
     }
 

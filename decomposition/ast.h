@@ -8,7 +8,7 @@ namespace dcmp {
 
 class AST {
    public:
-    explicit AST(std::unique_ptr<Expr> root);
+    static AST FromJson(std::istream& input);
 
     AST(const AST&) = delete;
 
@@ -21,6 +21,8 @@ class AST {
     void PostorderTraverse(ExprVisitor& visitor) const;
 
    private:
+    explicit AST(std::unique_ptr<Expr> root);
+
     std::unique_ptr<Expr> root_;
 };
 

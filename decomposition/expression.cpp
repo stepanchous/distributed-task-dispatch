@@ -1,5 +1,6 @@
 #include <magic_enum/magic_enum.hpp>
 #include <magic_enum/magic_enum_iostream.hpp>
+#include <nlohmann/json.hpp>
 #include <stdexcept>
 
 #include "domain/domain.h"
@@ -408,10 +409,14 @@ std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
                                                 std::move(operand2));
             break;
         case list:
-            expr = std::make_unique<ListExpr>(std::move(var_id.value()));
+            expr = std::make_unique<ListExpr>(
+                std::move(std::move(var_id.value())));
             break;
         case scalar_const:
             expr = std::make_unique<ScalarConstExpr>(std::move(x.value()));
+            break;
+        case scalar_var:
+            expr = std::make_unique<ScalarVarExpr>(std::move(var_id.value()));
             break;
         case so_add:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::add,
@@ -441,11 +446,42 @@ std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
         case invalid:
             throw std::invalid_argument("Invalid can not be passed to factory");
             break;
-        case scalar_var:
-            break;
     }
 
     return expr;
+}
+
+std::unique_ptr<Expr> FromJsonImpl(const nlohmann::json& json) {
+    using namespace nlohmann;
+    auto node = json.begin();
+
+    if (node.key() == "list") {
+        return Expr::New(list, nullptr, nullptr, node->get<std::string>());
+    }
+
+    if (node.key().starts_with("scalar")) {
+        if (node.key() == "scalar_var") {
+            return Expr::New(scalar_var, nullptr, nullptr,
+                             node->get<std::string>());
+        } else {
+            return Expr::New(scalar_const, nullptr, nullptr, std::nullopt,
+                             node->get<domain::Scalar>());
+        }
+    }
+
+    return Expr::New(
+        STRING_TO_EXPR_TYPE.at(node.key()),
+        node->contains("lhs") ? FromJsonImpl(node->at("lhs")) : nullptr,
+        node->contains("rhs") ? FromJsonImpl(node->at("rhs")) : nullptr);
+}
+
+std::unique_ptr<Expr> Expr::FromJson(std::istream& input) {
+    using namespace nlohmann;
+
+    auto json_ast = json::parse(input);
+    auto root = json_ast.at("ast");
+
+    return FromJsonImpl(root);
 }
 
 }  // namespace dcmp
