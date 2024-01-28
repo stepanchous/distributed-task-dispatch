@@ -42,14 +42,7 @@ Scalar Size(const List& l) { return l.size(); }
 
 Scalar Dot(const List& l1, const List& l2) {
     assert(l1.size() == l2.size());
-
-    Scalar result{};
-
-    for (size_t i = 0; i < l1.size(); ++i) {
-        result += l1[i] * l2[i];
-    }
-
-    return result;
+    return std::inner_product(l1.begin(), l1.end(), l2.begin(), Scalar{});
 }
 
 List Mul(const List& l, const Scalar& x) {

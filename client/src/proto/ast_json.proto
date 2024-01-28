@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package AstJson;
+
+service AstJsonService {
+    rpc SendAstJson(JsonString) returns (Empty) {}
+}
+
+message JsonString {
+    string json_str = 1;
+}
+
+message Empty {
+}
