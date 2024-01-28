@@ -17,6 +17,6 @@ WORKDIR /app/src/build
 RUN cmake .. -DCMAKE_BUILD_TYPE=Release && \
     cmake --build .
 
-ENTRYPOINT ./manager
+ENTRYPOINT ./manager ../config/network.json
 
 EXPOSE 5300

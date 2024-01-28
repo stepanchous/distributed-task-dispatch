@@ -1,3 +1,15 @@
-#include "grpc-server/grpc_server.h"
+#include <iostream>
 
-int main() { RunServer(); }
+#include "grpc-server/grpc_server.h"
+#include "manager-config/manager_config.h"
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Invalid number of arguments" << std::endl;
+        return 1;
+    }
+
+    manager::Config config = manager::Config::FromJson(argv[1]);
+
+    RunServer(config);
+}

@@ -55,6 +55,7 @@ include_directories(lib)
 set(DECOMPOSITION_DIR decomposition)
 set(DOMAIN_DIR domain)
 set(GRPC_SERVER_DIR grpc-server)
+set(MANAGER_CONFIG_DIR manager-config)
 
 set(MANAGER_SOURCES
   manager.cpp
@@ -70,6 +71,8 @@ set(MANAGER_SOURCES
   ${DOMAIN_DIR}/domain.cpp
   ${GRPC_SERVER_DIR}/grpc_server.h
   ${GRPC_SERVER_DIR}/grpc_server.cpp
+  ${MANAGER_CONFIG_DIR}/manager_config.h
+  ${MANAGER_CONFIG_DIR}/manager_config.cpp
 )
 
 add_executable(manager ${PROTO_SRC} ${PROTO_HDRS} ${MANAGER_SOURCES})

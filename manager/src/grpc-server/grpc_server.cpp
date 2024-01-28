@@ -1,3 +1,4 @@
+#include <csignal>
 #include <iostream>
 #include <memory>
 
@@ -11,8 +12,8 @@ grpc::Status AstJsonServiceImpl::SendAstJson(
     return grpc::Status::OK;
 }
 
-void RunServer() {
-    std::string server_address("0.0.0.0:5300");
+void RunServer(const manager::Config& config) {
+    std::string server_address(config.addr_uri);
 
     AstJsonServiceImpl service;
 
@@ -25,6 +26,10 @@ void RunServer() {
     std::unique_ptr<grpc::Server> server(server_builder.BuildAndStart());
 
     std::cout << "Server listening on " << server_address << std::endl;
+
+    auto shutdown_handler = [](int) { abort(); };
+
+    std::signal(SIGTERM, shutdown_handler);
 
     server->Wait();
 }
