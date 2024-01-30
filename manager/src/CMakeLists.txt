@@ -19,7 +19,7 @@ find_package(gRPC REQUIRED)
 # Build proto
 set(PROTO_DIR proto)
 
-add_library(proto-objects-server OBJECT ${PROTO_DIR}/ast_json.proto)
+add_library(proto-objects-server OBJECT ${PROTO_DIR}/computation.proto)
 
 target_link_libraries(proto-objects-server PRIVATE protobuf::libprotobuf gRPC::grpc++)
 
@@ -67,6 +67,8 @@ set(MANAGER_SOURCES
   ${DECOMPOSITION_DIR}/dag_visitor.cpp
   ${DECOMPOSITION_DIR}/expression_visitors.h
   ${DECOMPOSITION_DIR}/expression_visitors.cpp
+  ${DECOMPOSITION_DIR}/decomposition.h
+  ${DECOMPOSITION_DIR}/decomposition.cpp
   ${DOMAIN_DIR}/domain.h
   ${DOMAIN_DIR}/domain.cpp
   ${GRPC_SERVER_DIR}/grpc_server.h

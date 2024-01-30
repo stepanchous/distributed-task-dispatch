@@ -17,7 +17,7 @@ find_package(gRPC REQUIRED)
 # Build proto
 set(PROTO_DIR proto)
 
-add_library(proto-objects-client OBJECT ${PROTO_DIR}/ast_json.proto)
+add_library(proto-objects-client OBJECT ${PROTO_DIR}/computation.proto)
 
 target_link_libraries(proto-objects-client PRIVATE protobuf::libprotobuf gRPC::grpc++)
 
@@ -46,8 +46,15 @@ set_source_files_properties(${PROTO_GENERATED_FILES} PROPERTIES SKIP_UNITY_BUILD
 target_include_directories(proto-objects-client PRIVATE "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 
 # Build client
+set(GRPC_CLIENT_DIR grpc-client)
+set(CLIENT_CONFIG_DIR client-config)
+
 set(CLIENT_SOURCES
     client.cpp
+    ${GRPC_CLIENT_DIR}/grpc_client.h
+    ${GRPC_CLIENT_DIR}/grpc_client.cpp
+    ${CLIENT_CONFIG_DIR}/client_config.h
+    ${CLIENT_CONFIG_DIR}/client_config.cpp
 )
 
 add_executable(client ${PROTO_SRCS} ${PROTO_HDRS} ${CLIENT_SOURCES})

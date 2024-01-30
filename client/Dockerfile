@@ -7,7 +7,8 @@ RUN dnf install -y \
     g++ \
     boost-devel \
     protobuf-compiler \
-    grpc-devel
+    grpc-devel \
+    json-devel
 
 ADD ./src /app/src
 
@@ -16,4 +17,4 @@ WORKDIR /app/src/build
 RUN cmake .. -DCMAKE_BUILD_TYPE=Release && \
     cmake --build .
 
-ENTRYPOINT ./client /app/src/ASTs/example2.json
+ENTRYPOINT ./client /app/src/config/network.json /app/src/ASTs/example0.json

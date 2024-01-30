@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    manager::Config config = manager::Config::FromJson(argv[1]);
+    DecompDispatchServerImpl server;
 
-    RunServer(config);
+    server.Run(manager::Config::FromJson(argv[1]));
 }
