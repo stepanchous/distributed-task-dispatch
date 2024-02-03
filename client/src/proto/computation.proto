@@ -11,4 +11,5 @@ message AstRequest {
 }
 
 message CalculationReply {
+    string value = 2;
 }

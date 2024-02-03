@@ -1,3 +1,4 @@
+#include <condition_variable>
 #include <fstream>
 #include <stdexcept>
 
@@ -18,33 +19,39 @@ std::string ReadFile(const std::string& path) {
 
 }  // namespace
 
+
 DecompDispatchClient::DecompDispatchClient(
     std::shared_ptr<grpc::Channel> channel)
     : stub_(dcmp::DecompDispatchService::NewStub(channel)) {}
 
-bool DecompDispatchClient::CalculateProblem(std::string str) {
-    dcmp::AstRequest ast_json;
-    ast_json.set_str(std::move(str));
+bool DecompDispatchClient::CalculateProblem(const std::string& str) {
+    dcmp::AstRequest request;
+    request.set_str(str);
 
-    grpc::ClientContext context;
     dcmp::CalculationReply reply;
 
-    grpc::CompletionQueue cq;
+    grpc::ClientContext context;
 
+    std::mutex mu;
+    std::condition_variable cv;
+    bool done = false;
     grpc::Status status;
+    stub_->async()->CalculateProblem(
+        &context, &request, &reply, [&mu, &cv, &done, &status](grpc::Status s) {
+            status = std::move(s);
+            std::lock_guard<std::mutex> lock(mu);
+            done = true;
+            cv.notify_one();
+        });
 
-    std::unique_ptr<grpc::ClientAsyncResponseReader<dcmp::CalculationReply>>
-        rpc(stub_->AsyncCalculateProblem(&context, ast_json, &cq));
+    std::unique_lock<std::mutex> lock(mu);
+    while (!done) {
+        cv.wait(lock);
+    }
 
-    rpc->Finish(&reply, &status, (void*)this);
+    std::cout << reply.value() << std::endl;
 
-    void* got_tag;
-    bool ok = false;
-
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
-    GPR_ASSERT(got_tag == (void*)this);
-    GPR_ASSERT(ok);
-
+    // Act upon its status.
     return status.ok();
 }
 

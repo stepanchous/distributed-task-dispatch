@@ -16,6 +16,16 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gRPC REQUIRED)
 
+find_package(PkgConfig)
+pkg_check_modules(PC_ZeroMQ QUIET zmq)
+
+find_library(
+    ZeroMQ_LIBRARY
+    NAMES zmq
+    PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+)
+
+
 # Build proto
 set(PROTO_DIR proto)
 
@@ -52,10 +62,13 @@ target_include_directories(proto-objects-server PRIVATE "$<BUILD_INTERFACE:${PRO
 # Build manager
 include_directories(lib)
 
+add_compile_definitions(ZMQ_BUILD_DRAFT_API)
+
 set(DECOMPOSITION_DIR decomposition)
 set(DOMAIN_DIR domain)
 set(GRPC_SERVER_DIR grpc-server)
 set(MANAGER_CONFIG_DIR manager-config)
+set(DISPATCH_DIR dispatch)
 
 set(MANAGER_SOURCES
   manager.cpp
@@ -75,10 +88,16 @@ set(MANAGER_SOURCES
   ${GRPC_SERVER_DIR}/grpc_server.cpp
   ${MANAGER_CONFIG_DIR}/manager_config.h
   ${MANAGER_CONFIG_DIR}/manager_config.cpp
+  ${DISPATCH_DIR}/dispatch.h
+  ${DISPATCH_DIR}/dispatch.cpp
+  ${DISPATCH_DIR}/task_dealer.h
+  ${DISPATCH_DIR}/task_dealer.cpp
 )
 
 add_executable(manager ${PROTO_SRC} ${PROTO_HDRS} ${MANAGER_SOURCES})
 
 target_link_libraries(manager PRIVATE proto-objects-server)
+target_link_libraries(manager PRIVATE grpc++_reflection)
 target_link_libraries(manager PRIVATE Boost::graph)
 target_link_libraries(manager PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(manager PRIVATE ${ZeroMQ_LIBRARY})

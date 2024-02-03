@@ -12,6 +12,7 @@ namespace dcmp {
 using ExprData =
     std::variant<std::monostate, domain::VariableId, domain::Scalar>;
 
+
 enum ExprType {
     invalid = 0,
     re_min,

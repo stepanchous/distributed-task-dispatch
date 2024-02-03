@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package task;
+
+message StaticOperand {
+    string identifier = 1;
+}
+
+message DynOperand {
+    uint32 problem_id = 2;
+    uint32 task_id = 3;
+    bool is_scalar = 4;
+    
+}
+
+message Operand {
+    oneof operand {
+        StaticOperand static_operand = 5;
+        DynOperand dyn_operand = 6;
+    }
+}
+
+message Task {
+    uint32 problem_id = 7;
+    uint32 task_id = 8;
+    uint32 operation_type = 9;
+    repeated Operand operands = 10;
+}
