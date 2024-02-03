@@ -8,6 +8,8 @@ set(CMAKE_INCLUDE_CURRENT_BINARY_DIR ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+
 include_directories(lib)
 include_directories(common)
 

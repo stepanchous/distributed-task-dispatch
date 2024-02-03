@@ -22,6 +22,9 @@ class Broker {
     void LogManagerTask(const std::string& str_task) const;
 
    private:
+    void ReceiveWorkerMessage();
+
+   private:
     zmq::context_t context_;
     zmq::socket_t manager_connection_;
     zmq::socket_t worker_pub_;

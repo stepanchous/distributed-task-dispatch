@@ -1,3 +1,4 @@
+#include <spdlog/spdlog.h>
 #include <unistd.h>
 
 #include <cctype>
@@ -8,6 +9,7 @@
 
 #include "dispatch.h"
 #include "domain/domain.h"
+#include "log_format/log_format.h"
 #include "task.pb.h"
 
 ProblemId Dispatcher::PROBLEM_ID = 0;
@@ -26,13 +28,14 @@ void Dispatcher::RunDispatcher() {
 
 void Dispatcher::PollComputableTasks() {
     std::lock_guard l(m_);
-    for (const auto& [problem_id, calc_data] :
-         problem_id_to_calculation_data_) {
+    for (auto& [problem_id, calc_data] : problem_id_to_calculation_data_) {
         for (const auto& [task_id, dependencies] :
              calc_data.computable_task_to_dependencies) {
             broker_connection_.SendRequest(
                 FormTaskRequest(problem_id, task_id, dependencies));
         }
+
+        calc_data.computable_task_to_dependencies.clear();
     }
 }
 
@@ -99,6 +102,8 @@ std::string Dispatcher::FormTaskRequest(
         task::Operand* operand = task.add_operands();
         *operand = FormOperand(problem_id, dependency);
     }
+
+    spdlog::info("Manager -> Broker: {}", task);
 
     return task.SerializeAsString();
 }

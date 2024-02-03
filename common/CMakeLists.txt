@@ -8,7 +8,4 @@ set(CMAKE_INCLUDE_CURRENT_BINARY_DIR ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(.)
-
-add_subdirectory(log_format)
 add_subdirectory(domain)

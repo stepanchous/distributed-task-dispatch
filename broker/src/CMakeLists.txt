@@ -10,6 +10,8 @@ add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-pedantic)
 
+find_package(spdlog REQUIRED)
+
 find_package(PkgConfig)
 pkg_check_modules(PC_ZeroMQ QUIET zmq)
 
@@ -31,3 +33,4 @@ add_executable(broker ${BROKER_SOURCES})
 
 target_link_libraries(broker PRIVATE ${ZeroMQ_LIBRARY})
 target_link_libraries(broker PRIVATE proto-objects)
+target_link_libraries(broker PRIVATE spdlog::spdlog)

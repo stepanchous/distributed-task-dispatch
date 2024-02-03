@@ -1,7 +1,11 @@
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 #include "broker_impl.h"
 #include "cppzmq/zmq.hpp"
+#include "log_format/log_format.h"
+#include "task.pb.h"
 
 using namespace std::string_literals;
 
@@ -58,7 +62,12 @@ void Broker::RunBroker() {
             zmq::message_t task;
             manager_connection_.recv(task);
 
-            std::cout << "Broker got from client" << task.str() << std::endl;
+            std::cout << task.str() << std::endl;
+
+            task::Task proto_task;
+            proto_task.ParseFromArray(task.data(), task.size());
+
+            spdlog::info("Broker <- Manager {}", proto_task);
 
             worker_pub_.send(zmq::str_buffer("WORK"), zmq::send_flags::sndmore);
             auto hui = worker_pub_.send(task, zmq::send_flags::dontwait);
@@ -72,4 +81,15 @@ void Broker::RunBroker() {
     }
 }
 
-void Broker::LogManagerTask(const std::string& str_task) const {}
+void Broker::ReceiveWorkerMessage() {
+    zmq::message_t identity;
+    zmq::message_t worker_message;
+
+    worker_router_.recv(identity);
+    worker_router_.recv(worker_message);
+
+    std::cout << "Broker got from worker(" << identity.str()
+              << "): " << worker_message.str() << '\n';
+
+    worker_routing_id_to_status_.emplace(std::move(identity), true);
+}
