@@ -8,12 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_BINARY_DIR ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(lib)
-include_directories(common)
+include_directories(.)
 
-add_subdirectory(proto)
-add_subdirectory(common)
-add_subdirectory(manager/src)
-add_subdirectory(client/src)
-add_subdirectory(broker/src)
-add_subdirectory(worker/src)
+add_subdirectory(log_format)
+add_subdirectory(domain)

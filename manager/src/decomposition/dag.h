@@ -7,7 +7,7 @@
 namespace dcmp {
 
 struct VertexProperties {
-    dcmp::ExprType type;
+    domain::ExprType type;
     ExprData data;
 
     bool operator==(const VertexProperties& rhs) const = default;

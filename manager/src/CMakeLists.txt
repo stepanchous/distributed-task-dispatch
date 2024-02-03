@@ -26,7 +26,6 @@ find_library(
 )
 
 set(DECOMPOSITION_DIR decomposition)
-set(DOMAIN_DIR domain)
 set(GRPC_SERVER_DIR grpc-server)
 set(MANAGER_CONFIG_DIR manager-config)
 set(DISPATCH_DIR dispatch)
@@ -43,8 +42,6 @@ set(MANAGER_SOURCES
   ${DECOMPOSITION_DIR}/expression_visitors.cpp
   ${DECOMPOSITION_DIR}/decomposition.h
   ${DECOMPOSITION_DIR}/decomposition.cpp
-  ${DOMAIN_DIR}/domain.h
-  ${DOMAIN_DIR}/domain.cpp
   ${GRPC_SERVER_DIR}/grpc_server.h
   ${GRPC_SERVER_DIR}/grpc_server.cpp
   ${MANAGER_CONFIG_DIR}/manager_config.h
@@ -59,6 +56,7 @@ add_executable(manager ${PROTO_SRC} ${PROTO_HDRS} ${MANAGER_SOURCES})
 
 target_link_libraries(manager PRIVATE proto-objects)
 target_link_libraries(manager PRIVATE grpc++_reflection)
+target_link_libraries(manager PRIVATE domain)
 target_link_libraries(manager PRIVATE Boost::graph)
 target_link_libraries(manager PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(manager PRIVATE ${ZeroMQ_LIBRARY})

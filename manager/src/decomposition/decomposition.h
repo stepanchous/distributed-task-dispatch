@@ -20,8 +20,15 @@ class TaskDecompositor {
     std::unordered_map<dcmp::VertexDescriptor, dcmp::ExprData>
     GetIndependentTasks() const;
 
-    std::unordered_set<dcmp::VertexDescriptor> GetComputableTasks(
+    std::unordered_map<dcmp::VertexDescriptor,
+                       std::vector<dcmp::VertexDescriptor>>
+    GetComputableTasks(
         const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks) const;
+
+    std::vector<dcmp::VertexDescriptor> GetRequiredDependencies(
+        dcmp::VertexDescriptor task) const;
+
+    size_t GetOperationType(dcmp::VertexDescriptor task) const;
 
     void PrintTasks(std::ostream& output) const;
 

@@ -1,5 +1,3 @@
-#include <algorithm>
-#include <chrono>
 #include <iostream>
 
 #include "broker_impl.h"
@@ -57,15 +55,13 @@ void Broker::RunBroker() {
         }
 
         if (poll_items_[1].revents & ZMQ_POLLIN) {
-            zmq::message_t client_message;
-            manager_connection_.recv(client_message);
+            zmq::message_t task;
+            manager_connection_.recv(task);
 
-            std::cout << "Broker got from client" << client_message.str()
-                      << std::endl;
+            std::cout << "Broker got from client" << task.str() << std::endl;
 
             worker_pub_.send(zmq::str_buffer("WORK"), zmq::send_flags::sndmore);
-            auto hui =
-                worker_pub_.send(client_message, zmq::send_flags::dontwait);
+            auto hui = worker_pub_.send(task, zmq::send_flags::dontwait);
 
             if (hui.has_value()) {
                 std::cout << "Message was sent to worker" << std::endl;
@@ -75,3 +71,5 @@ void Broker::RunBroker() {
         }
     }
 }
+
+void Broker::LogManagerTask(const std::string& str_task) const {}

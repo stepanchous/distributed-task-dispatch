@@ -4,25 +4,26 @@ package task;
 
 message StaticOperand {
     string identifier = 1;
+    bool is_scalar = 2;
 }
 
 message DynOperand {
-    uint32 problem_id = 2;
-    uint32 task_id = 3;
-    bool is_scalar = 4;
+    uint32 problem_id = 3;
+    uint32 task_id = 4;
+    bool is_scalar = 5;
     
 }
 
 message Operand {
     oneof operand {
-        StaticOperand static_operand = 5;
-        DynOperand dyn_operand = 6;
+        StaticOperand static_operand = 6;
+        DynOperand dyn_operand = 7;
     }
 }
 
 message Task {
-    uint32 problem_id = 7;
-    uint32 task_id = 8;
-    uint32 operation_type = 9;
-    repeated Operand operands = 10;
+    uint32 problem_id = 8;
+    uint32 task_id = 9;
+    uint32 operation_type = 10;
+    repeated Operand operands = 11;
 }

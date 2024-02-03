@@ -1,32 +1,38 @@
 #include <unistd.h>
 
+#include <cctype>
 #include <condition_variable>
 #include <mutex>
 #include <utility>
+#include <variant>
 
 #include "dispatch.h"
 #include "domain/domain.h"
+#include "task.pb.h"
 
 ProblemId Dispatcher::PROBLEM_ID = 0;
 
-Dispatcher::Dispatcher(TaskDealer& requester) : requester_(requester) {}
+Dispatcher::Dispatcher(BrokerConnection& broker_connection)
+    : broker_connection_(broker_connection) {}
 
 void Dispatcher::RunDispatcher() {
     while (true) {
-        {
-            std::lock_guard l(m_);
-            for (const auto& [problem_id, calc_data] :
-                 problem_id_to_calculation_data_) {
-                if (calc_data.computable_tasks.empty()) {
-                    continue;
-                }
-
-                // Send task to broker
-            }
-        }
+        PollComputableTasks();
 
         // ReadReply
         // if reply update calculation data
+    }
+}
+
+void Dispatcher::PollComputableTasks() {
+    std::lock_guard l(m_);
+    for (const auto& [problem_id, calc_data] :
+         problem_id_to_calculation_data_) {
+        for (const auto& [task_id, dependencies] :
+             calc_data.computable_task_to_dependencies) {
+            broker_connection_.SendRequest(
+                FormTaskRequest(problem_id, task_id, dependencies));
+        }
     }
 }
 
@@ -37,9 +43,12 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
 
     for (const auto& [task_id, expr_data] :
          calc_data.decompositor.GetIndependentTasks()) {
-        calc_data.computed_tasks[task_id] = DataId{
-            .name = std::get<domain::VariableId>(expr_data),
-        };
+        DataId data_id;
+
+        data_id.name = std::get<domain::VariableId>(expr_data);
+        data_id.is_scalar = IsScalarVariable(data_id.name);
+
+        calc_data.computed_tasks[task_id] = data_id;
     }
 
     std::unordered_set<dcmp::VertexDescriptor> computed_tasks;
@@ -48,7 +57,7 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
         computed_tasks.emplace(task_id);
     }
 
-    calc_data.computable_tasks =
+    calc_data.computable_task_to_dependencies =
         calc_data.decompositor.GetComputableTasks(computed_tasks);
 
     {
@@ -74,6 +83,56 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
     //       3. Notify storage that intermediate results can be deleted
 
     return PROBLEM_ID - 1;
+}
+
+std::string Dispatcher::FormTaskRequest(
+    ProblemId problem_id, dcmp::VertexDescriptor task_id,
+    const std::vector<dcmp::VertexDescriptor>& dependencies) const {
+    task::Task task;
+
+    task.set_problem_id(problem_id);
+    task.set_task_id(task_id);
+    task.set_operation_type(problem_id_to_calculation_data_.at(problem_id)
+                                .decompositor.GetOperationType(task_id));
+
+    for (const auto& dependency : dependencies) {
+        task::Operand* operand = task.add_operands();
+        *operand = FormOperand(problem_id, dependency);
+    }
+
+    return task.SerializeAsString();
+}
+
+task::Operand Dispatcher::FormOperand(ProblemId problem_id,
+                                      dcmp::VertexDescriptor operand_id) const {
+    task::Operand operand;
+
+    NodeResultId node_result = problem_id_to_calculation_data_.at(problem_id)
+                                   .computed_tasks.at(operand_id);
+
+    if (std::holds_alternative<NodeId>(node_result)) {
+        task::DynOperand* dyn_operand = new task::DynOperand;
+        dyn_operand->set_problem_id(problem_id);
+        dyn_operand->set_task_id(operand_id);
+        dyn_operand->set_is_scalar(std::get<NodeId>(node_result).is_scalar);
+
+        operand.set_allocated_dyn_operand(dyn_operand);
+    } else if (std::holds_alternative<DataId>(node_result)) {
+        task::StaticOperand* static_operand = new task::StaticOperand;
+        static_operand->set_identifier(std::get<DataId>(node_result).name);
+        static_operand->set_is_scalar(std::get<DataId>(node_result).is_scalar);
+
+        operand.set_allocated_static_operand(static_operand);
+    } else {
+        assert(false);
+    }
+
+    return operand;
+}
+
+bool Dispatcher::IsScalarVariable(const std::string& variable_id) {
+    return std::all_of(variable_id.begin(), variable_id.end(),
+                       [](char c) { return std::islower(c); });
 }
 
 Dispatcher::CalculationData::CalculationData(

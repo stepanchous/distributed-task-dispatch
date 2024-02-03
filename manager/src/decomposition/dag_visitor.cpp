@@ -74,7 +74,7 @@ Graph DagVisitor::BuildGraph() const {
 void DagVisitor::PrintRecords(std::ostream& output) const {
     using magic_enum::iostream_operators::operator<<;
     for (const Expr* expr : records_) {
-        ExprType type = expr->GetType();
+        domain::ExprType type = expr->GetType();
         const Expr* lhs = expr->GetLhs();
         const Expr* rhs = expr->GetRhs();
 

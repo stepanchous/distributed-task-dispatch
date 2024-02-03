@@ -21,27 +21,27 @@ class ReduceExpr final : public Expr {
     explicit ReduceExpr(Type type, std::unique_ptr<Expr> operand)
         : type_(type), operand_(std::move(operand)) {}
 
-    ExprType GetType() const override {
-        ExprType type;
+    domain::ExprType GetType() const override {
+        domain::ExprType type;
 
         switch (type_) {
             case Type::min:
-                type = re_min;
+                type = domain::ExprType::re_min;
                 break;
             case Type::max:
-                type = re_max;
+                type = domain::ExprType::re_max;
                 break;
             case Type::mul:
-                type = re_mul;
+                type = domain::ExprType::re_mul;
                 break;
             case Type::sum:
-                type = re_sum;
+                type = domain::ExprType::re_sum;
                 break;
             case Type::size:
-                type = re_size;
+                type = domain::ExprType::re_size;
                 break;
             default:
-                type = invalid;
+                type = domain::ExprType::invalid;
                 break;
         }
 
@@ -87,21 +87,21 @@ class MapExpr final : public Expr {
                      std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    ExprType GetType() const override {
-        ExprType type;
+    domain::ExprType GetType() const override {
+        domain::ExprType type;
 
         switch (type_) {
             case Type::mul:
-                type = me_mul;
+                type = domain::ExprType::me_mul;
                 break;
             case Type::add:
-                type = me_add;
+                type = domain::ExprType::me_add;
                 break;
             case Type::div:
-                type = me_div;
+                type = domain::ExprType::me_div;
                 break;
             default:
-                type = invalid;
+                type = domain::ExprType::invalid;
                 break;
         }
 
@@ -146,24 +146,24 @@ class ListOpExpr final : public Expr {
                         std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    ExprType GetType() const override {
-        ExprType type;
+    domain::ExprType GetType() const override {
+        domain::ExprType type;
 
         switch (type_) {
             case Type::mul:
-                type = lo_mul;
+                type = domain::ExprType::lo_mul;
                 break;
             case Type::add:
-                type = lo_add;
+                type = domain::ExprType::lo_add;
                 break;
             case Type::div:
-                type = lo_div;
+                type = domain::ExprType::lo_div;
                 break;
             case Type::dot:
-                type = lo_dot;
+                type = domain::ExprType::lo_dot;
                 break;
             default:
-                type = invalid;
+                type = domain::ExprType::invalid;
                 break;
         }
 
@@ -208,27 +208,27 @@ class ScalarOpExpr final : public Expr {
                           std::unique_ptr<Expr> rhs)
         : type_(type), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    ExprType GetType() const override {
-        ExprType type;
+    domain::ExprType GetType() const override {
+        domain::ExprType type;
 
         switch (type_) {
             case Type::mul:
-                type = so_mul;
+                type = domain::ExprType::so_mul;
                 break;
             case Type::add:
-                type = so_add;
+                type = domain::ExprType::so_add;
                 break;
             case Type::div:
-                type = so_div;
+                type = domain::ExprType::so_div;
                 break;
             case Type::max:
-                type = so_max;
+                type = domain::ExprType::so_max;
                 break;
             case Type::min:
-                type = so_min;
+                type = domain::ExprType::so_min;
                 break;
             default:
-                type = invalid;
+                type = domain::ExprType::invalid;
                 break;
         }
 
@@ -269,7 +269,7 @@ class ListExpr final : public Expr {
    public:
     explicit ListExpr(const domain::VariableId& l) : l_(l) {}
 
-    ExprType GetType() const override { return ExprType::list; }
+    domain::ExprType GetType() const override { return domain::ExprType::list; }
 
     void PostorderTraverse(ExprVisitor& visitor) const override {
         visitor.Visit(*this);
@@ -297,7 +297,9 @@ class ScalarConstExpr final : public Expr {
    public:
     explicit ScalarConstExpr(const domain::Scalar& x) : x_(x) {}
 
-    ExprType GetType() const override { return ExprType::scalar_const; }
+    domain::ExprType GetType() const override {
+        return domain::ExprType::scalar_const;
+    }
 
     void PostorderTraverse(ExprVisitor& visitor) const override {
         visitor.Visit(*this);
@@ -325,7 +327,9 @@ class ScalarVarExpr final : public Expr {
    public:
     explicit ScalarVarExpr(const domain::VariableId& x) : x_(x) {}
 
-    ExprType GetType() const override { return ExprType::scalar_var; }
+    domain::ExprType GetType() const override {
+        return domain::ExprType::scalar_var;
+    }
 
     void PostorderTraverse(ExprVisitor& visitor) const override {
         visitor.Visit(*this);
@@ -349,101 +353,102 @@ class ScalarVarExpr final : public Expr {
     domain::VariableId x_{};
 };
 
-std::unique_ptr<Expr> Expr::New(ExprType type, std::unique_ptr<Expr> operand1,
+std::unique_ptr<Expr> Expr::New(domain::ExprType type,
+                                std::unique_ptr<Expr> operand1,
                                 std::unique_ptr<Expr> operand2,
                                 std::optional<domain::VariableId> var_id,
                                 std::optional<domain::Scalar> x) {
     std::unique_ptr<Expr> expr = nullptr;
 
     switch (type) {
-        case re_min:
+        case domain::ExprType::re_min:
             expr = std::make_unique<ReduceExpr>(ReduceExpr::Type::min,
                                                 std::move(operand1));
             break;
-        case re_max:
+        case domain::ExprType::re_max:
             expr = std::make_unique<ReduceExpr>(ReduceExpr::Type::max,
                                                 std::move(operand1));
             break;
-        case re_mul:
+        case domain::ExprType::re_mul:
             expr = std::make_unique<ReduceExpr>(ReduceExpr::Type::mul,
                                                 std::move(operand1));
             break;
-        case re_sum:
+        case domain::ExprType::re_sum:
             expr = std::make_unique<ReduceExpr>(ReduceExpr::Type::sum,
                                                 std::move(operand1));
             break;
-        case re_size:
+        case domain::ExprType::re_size:
             expr = std::make_unique<ReduceExpr>(ReduceExpr::Type::size,
                                                 std::move(operand1));
             break;
-        case me_add:
+        case domain::ExprType::me_add:
             expr = std::make_unique<MapExpr>(
                 MapExpr::Type::add, std::move(operand1), std::move(operand2));
             break;
-        case me_mul:
+        case domain::ExprType::me_mul:
             expr = std::make_unique<MapExpr>(
                 MapExpr::Type::mul, std::move(operand1), std::move(operand2));
             break;
-        case me_div:
+        case domain::ExprType::me_div:
             expr = std::make_unique<MapExpr>(
                 MapExpr::Type::div, std::move(operand1), std::move(operand2));
             break;
-        case lo_add:
+        case domain::ExprType::lo_add:
             expr = std::make_unique<ListOpExpr>(ListOpExpr::Type::add,
                                                 std::move(operand1),
                                                 std::move(operand2));
             break;
-        case lo_mul:
+        case domain::ExprType::lo_mul:
             expr = std::make_unique<ListOpExpr>(ListOpExpr::Type::mul,
                                                 std::move(operand1),
                                                 std::move(operand2));
             break;
-        case lo_div:
+        case domain::ExprType::lo_div:
             expr = std::make_unique<ListOpExpr>(ListOpExpr::Type::div,
                                                 std::move(operand1),
                                                 std::move(operand2));
             break;
-        case lo_dot:
+        case domain::ExprType::lo_dot:
             expr = std::make_unique<ListOpExpr>(ListOpExpr::Type::dot,
                                                 std::move(operand1),
                                                 std::move(operand2));
             break;
-        case list:
+        case domain::ExprType::list:
             expr = std::make_unique<ListExpr>(
                 std::move(std::move(var_id.value())));
             break;
-        case scalar_const:
+        case domain::ExprType::scalar_const:
             expr = std::make_unique<ScalarConstExpr>(std::move(x.value()));
             break;
-        case scalar_var:
+        case domain::ExprType::scalar_var:
             expr = std::make_unique<ScalarVarExpr>(std::move(var_id.value()));
             break;
-        case so_add:
+        case domain::ExprType::so_add:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::add,
                                                   std::move(operand1),
                                                   std::move(operand2));
             break;
-        case so_mul:
+        case domain::ExprType::so_mul:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::mul,
                                                   std::move(operand1),
                                                   std::move(operand2));
             break;
-        case so_div:
+        case domain::ExprType::so_div:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::div,
                                                   std::move(operand1),
                                                   std::move(operand2));
             break;
-        case so_max:
+        case domain::ExprType::so_max:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::max,
                                                   std::move(operand1),
                                                   std::move(operand2));
             break;
-        case so_min:
+        case domain::ExprType::so_min:
             expr = std::make_unique<ScalarOpExpr>(ScalarOpExpr::Type::min,
                                                   std::move(operand1),
                                                   std::move(operand2));
             break;
-        case invalid:
+        case domain::ExprType::invalid:
             throw std::invalid_argument("Invalid can not be passed to factory");
             break;
     }
@@ -456,16 +461,17 @@ std::unique_ptr<Expr> FromJsonImpl(const nlohmann::json& json) {
     auto node = json.begin();
 
     if (node.key() == "list") {
-        return Expr::New(list, nullptr, nullptr, node->get<std::string>());
+        return Expr::New(domain::ExprType::list, nullptr, nullptr,
+                         node->get<std::string>());
     }
 
     if (node.key().starts_with("scalar")) {
         if (node.key() == "scalar_var") {
-            return Expr::New(scalar_var, nullptr, nullptr,
+            return Expr::New(domain::ExprType::scalar_var, nullptr, nullptr,
                              node->get<std::string>());
         } else {
-            return Expr::New(scalar_const, nullptr, nullptr, std::nullopt,
-                             node->get<domain::Scalar>());
+            return Expr::New(domain::ExprType::scalar_const, nullptr, nullptr,
+                             std::nullopt, node->get<domain::Scalar>());
         }
     }
 

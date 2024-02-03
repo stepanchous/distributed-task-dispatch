@@ -7,6 +7,30 @@
 
 namespace domain {
 
+enum class ExprType {
+    invalid = 0,
+    re_min,
+    re_max,
+    re_mul,
+    re_sum,
+    re_size,
+    me_add,
+    me_mul,
+    me_div,
+    lo_add,
+    lo_mul,
+    lo_div,
+    lo_dot,
+    so_add,
+    so_mul,
+    so_div,
+    so_max,
+    so_min,
+    list,
+    scalar_const,
+    scalar_var,
+};
+
 using Scalar = int;
 using List = std::vector<Scalar>;
 using VariableId = std::string;

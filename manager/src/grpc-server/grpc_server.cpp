@@ -36,7 +36,7 @@ grpc::ServerUnaryReactor* DecompDispatchServiceImpl::CalculateProblem(
 }
 
 void RunServer(const manager::Config& config) {
-    TaskDealer requester = TaskDealer::New();
+    BrokerConnection requester = BrokerConnection::New();
 
     Dispatcher dispatcher(requester);
 

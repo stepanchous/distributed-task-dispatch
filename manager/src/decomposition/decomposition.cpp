@@ -36,10 +36,11 @@ TaskDecompositor::GetIndependentTasks() const {
         independent_tasks;
 
     for (const auto& task : tasks_) {
-        dcmp::ExprType task_type = graph_[task].type;
+        domain::ExprType task_type = graph_[task].type;
 
-        if (task_type == list || task_type == scalar_const ||
-            task_type == scalar_var) {
+        if (task_type == domain::ExprType::list ||
+            task_type == domain::ExprType::scalar_const ||
+            task_type == domain::ExprType::scalar_var) {
             independent_tasks.emplace(task, graph_[task].data);
         }
     }
@@ -47,9 +48,12 @@ TaskDecompositor::GetIndependentTasks() const {
     return independent_tasks;
 }
 
-std::unordered_set<dcmp::VertexDescriptor> TaskDecompositor::GetComputableTasks(
+std::unordered_map<dcmp::VertexDescriptor, std::vector<dcmp::VertexDescriptor>>
+TaskDecompositor::GetComputableTasks(
     const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks) const {
-    std::unordered_set<dcmp::VertexDescriptor> computable_tasks;
+    std::unordered_map<dcmp::VertexDescriptor,
+                       std::vector<dcmp::VertexDescriptor>>
+        computable_task_to_dependencies;
 
     for (const auto& task : tasks_) {
         if (!computed_tasks.contains(task)) {
@@ -59,12 +63,18 @@ std::unordered_set<dcmp::VertexDescriptor> TaskDecompositor::GetComputableTasks(
                             [&](const auto& vertex) {
                                 return computed_tasks.contains(vertex);
                             })) {
-                computable_tasks.insert(task);
+                computable_task_to_dependencies.emplace(
+                    task, std::vector<dcmp::VertexDescriptor>(
+                              adjacent_vetices_first, adjacent_vetices_last));
             }
         }
     }
 
-    return computable_tasks;
+    return computable_task_to_dependencies;
+}
+
+size_t TaskDecompositor::GetOperationType(dcmp::VertexDescriptor task) const {
+    return static_cast<size_t>(graph_[task].type);
 }
 
 void TaskDecompositor::PrintTasks(std::ostream& output) const {

@@ -30,3 +30,4 @@ set(BROKER_SOURCES
 add_executable(broker ${BROKER_SOURCES})
 
 target_link_libraries(broker PRIVATE ${ZeroMQ_LIBRARY})
+target_link_libraries(broker PRIVATE proto-objects)

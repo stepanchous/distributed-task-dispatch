@@ -2,12 +2,12 @@
 #include <condition_variable>
 #include <mutex>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "decomposition/ast.h"
 #include "decomposition/decomposition.h"
 #include "dispatch/task_dealer.h"
 #include "domain/domain.h"
+#include "task.pb.h"
 
 using ProblemId = size_t;
 using TaskId = dcmp::VertexDescriptor;
@@ -15,17 +15,19 @@ using TaskId = dcmp::VertexDescriptor;
 struct NodeId {
     ProblemId problem_id;
     TaskId task_id;
+    bool is_scalar;
 };
 
 struct DataId {
     domain::VariableId name;
+    bool is_scalar;
 };
 
 using NodeResultId = std::variant<NodeId, DataId>;
 
 class Dispatcher {
    public:
-    Dispatcher(TaskDealer& requester);
+    Dispatcher(BrokerConnection& requester);
 
     void RunDispatcher();
 
@@ -37,7 +39,9 @@ class Dispatcher {
 
         dcmp::TaskDecompositor decompositor;
         std::unordered_map<dcmp::VertexDescriptor, NodeResultId> computed_tasks;
-        std::unordered_set<dcmp::VertexDescriptor> computable_tasks;
+        std::unordered_map<dcmp::VertexDescriptor,
+                           std::vector<dcmp::VertexDescriptor>>
+            computable_task_to_dependencies;
     };
 
     struct SyncData {
@@ -46,11 +50,21 @@ class Dispatcher {
         std::mutex cv_m{};
     };
 
+    void PollComputableTasks();
+
+    std::string FormTaskRequest(
+        ProblemId problem_id, dcmp::VertexDescriptor task_id,
+        const std::vector<dcmp::VertexDescriptor>& dependencies) const;
+
+    task::Operand FormOperand(ProblemId problem_id,
+                              dcmp::VertexDescriptor operand_id) const;
+
+    static bool IsScalarVariable(const std::string& variable_id);
+
+   private:
     std::map<ProblemId, CalculationData> problem_id_to_calculation_data_{};
     std::unordered_map<ProblemId, SyncData&> problem_id_to_sync_data_{};
-
-    TaskDealer& requester_;
-
+    BrokerConnection& broker_connection_;
     static ProblemId PROBLEM_ID;
     std::mutex m_;
 };
