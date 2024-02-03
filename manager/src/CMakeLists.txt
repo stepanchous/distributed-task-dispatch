@@ -25,45 +25,6 @@ find_library(
     PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
 )
 
-
-# Build proto
-set(PROTO_DIR proto)
-
-add_library(proto-objects-server OBJECT ${PROTO_DIR}/computation.proto)
-
-target_link_libraries(proto-objects-server PRIVATE protobuf::libprotobuf gRPC::grpc++)
-
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
-
-protobuf_generate(
-    TARGET proto-objects-server
-    OUT_VAR PROTO_GENERATED_FILES
-    IMPORT_DIRS ${PROTO_IMPORT_DIRS}
-    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
-)
-
-set_source_files_properties(${PROTO_GENERATED_FILES} PROPERTIES SKIP_UNITY_BUILD_INCLUSION on)
-
-protobuf_generate(
-    TARGET proto-objects-server
-    OUT_VAR PROTO_GENERATED_FILES
-    LANGUAGE grpc
-    GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
-    PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:gRPC::grpc_cpp_plugin>"
-    IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto"
-    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
-)
-
-set_source_files_properties(${PROTO_GENERATED_FILES} PROPERTIES SKIP_UNITY_BUILD_INCLUSION on)
-
-target_include_directories(proto-objects-server PRIVATE "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
-
-# Build manager
-include_directories(lib)
-
-add_compile_definitions(ZMQ_BUILD_DRAFT_API)
-
 set(DECOMPOSITION_DIR decomposition)
 set(DOMAIN_DIR domain)
 set(GRPC_SERVER_DIR grpc-server)
@@ -96,7 +57,7 @@ set(MANAGER_SOURCES
 
 add_executable(manager ${PROTO_SRC} ${PROTO_HDRS} ${MANAGER_SOURCES})
 
-target_link_libraries(manager PRIVATE proto-objects-server)
+target_link_libraries(manager PRIVATE proto-objects)
 target_link_libraries(manager PRIVATE grpc++_reflection)
 target_link_libraries(manager PRIVATE Boost::graph)
 target_link_libraries(manager PRIVATE nlohmann_json::nlohmann_json)

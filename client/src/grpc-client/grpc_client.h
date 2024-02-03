@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "client-config/client_config.h"
-#include "proto/computation.grpc.pb.h"
+#include "computation.grpc.pb.h"
 
 // class DecompDispatchClient {
 //    public:

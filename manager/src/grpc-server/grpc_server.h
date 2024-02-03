@@ -4,9 +4,9 @@
 
 #include <thread>
 
+#include "computation.grpc.pb.h"
 #include "dispatch/dispatch.h"
 #include "manager-config/manager_config.h"
-#include "proto/computation.grpc.pb.h"
 
 class DecompDispatchServiceImpl
     : public dcmp::DecompDispatchService::CallbackService {

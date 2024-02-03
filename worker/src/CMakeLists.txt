@@ -10,8 +10,6 @@ add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-pedantic)
 
-add_compile_definitions(ZMQ_BUILD_DRAFT_API)
-
 find_package(PkgConfig)
 pkg_check_modules(PC_ZeroMQ QUIET zmq)
 
@@ -20,8 +18,6 @@ find_library(
     NAMES zmq
     PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
 )
-
-include_directories(lib)
 
 set(BROKER_IMPL_DIR broker-impl)
 

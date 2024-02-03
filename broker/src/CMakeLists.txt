@@ -19,8 +19,6 @@ find_library(
     PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
 )
 
-include_directories(lib)
-
 set(BROKER_IMPL_DIR broker-impl)
 
 set(BROKER_SOURCES

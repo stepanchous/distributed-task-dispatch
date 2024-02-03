@@ -4,8 +4,13 @@ project(dispatch VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_BINARY_DIR ON)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories(lib)
+
+add_subdirectory(proto)
 add_subdirectory(manager/src)
 add_subdirectory(client/src)
 add_subdirectory(broker/src)

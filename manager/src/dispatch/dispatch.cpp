@@ -24,6 +24,9 @@ void Dispatcher::RunDispatcher() {
                 // Send task to broker
             }
         }
+
+        // ReadReply
+        // if reply update calculation data
     }
 }
 
