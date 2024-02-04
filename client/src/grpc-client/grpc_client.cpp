@@ -19,6 +19,11 @@ std::string ReadFile(const std::string& path) {
 
 }  // namespace
 
+namespace env {
+
+const char* GRPC_ADDRESS = "GRPC_ADDRESS";
+
+}
 
 DecompDispatchClient::DecompDispatchClient(
     std::shared_ptr<grpc::Channel> channel)
@@ -55,11 +60,11 @@ bool DecompDispatchClient::CalculateProblem(const std::string& str) {
     return status.ok();
 }
 
-void RunClient(const client::Config& config, const std::string& json_path) {
+void RunClient(const std::string& json_path) {
     auto json_str = ReadFile(json_path);
 
-    DecompDispatchClient client(
-        grpc::CreateChannel(config.target, grpc::InsecureChannelCredentials()));
+    DecompDispatchClient client(grpc::CreateChannel(
+        std::getenv(env::GRPC_ADDRESS), grpc::InsecureChannelCredentials()));
 
     if (client.CalculateProblem(json_str)) {
         std::cout << "Operation succeeded" << std::endl;

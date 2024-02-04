@@ -1,15 +1,21 @@
 #include <spdlog/spdlog.h>
 
-#include <iostream>
-
+#include "communiation/read_message.h"
 #include "cppzmq/zmq.hpp"
+#include "log_format/log_format.h"
 #include "task_dealer.h"
 
-BrokerConnection BrokerConnection::New(const manager::Config& config) {
+namespace env {
+
+const char* ZMQ_BROKER_ADDRESS = "ZMQ_BROKER_ADDRESS";
+
+}
+
+BrokerConnection BrokerConnection::New() {
     zmq::context_t context(1);
 
     zmq::socket_t broker_connection(context, zmq::socket_type::pair);
-    broker_connection.connect(config.broker_address);
+    broker_connection.connect(std::getenv(env::ZMQ_BROKER_ADDRESS));
 
     return BrokerConnection(std::move(context), std::move(broker_connection));
 }
@@ -17,9 +23,9 @@ BrokerConnection BrokerConnection::New(const manager::Config& config) {
 BrokerConnection::BrokerConnection(zmq::context_t context, zmq::socket_t dealer)
     : context_(std::move(context)), broker_connection_(std::move(dealer)) {}
 
-void BrokerConnection::SendRequest(const std::string& request) {
-    auto res =
-        broker_connection_.send(zmq::message_t(request), zmq::send_flags::none);
+void BrokerConnection::SendRequest(task::Task task) {
+    auto res = broker_connection_.send(zmq::message_t(task.SerializeAsString()),
+                                       zmq::send_flags::none);
 
     if (res) {
         spdlog::info("Message sent");
@@ -37,7 +43,9 @@ std::optional<std::string> BrokerConnection::ReadReply() {
         return {};
     }
 
-    std::cout << "Recieved from broker: " << reply.str() << '\n';
+    auto finished_task = FromMessage<task::Task>(reply);
+
+    spdlog::info("Manager <- Broker {}", finished_task);
 
     return reply.str();
 }

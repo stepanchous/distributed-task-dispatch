@@ -1,7 +1,6 @@
 #include <spdlog/spdlog.h>
 
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 #include "broker_impl.h"
@@ -13,6 +12,14 @@
 
 using namespace std::string_literals;
 
+namespace env {
+
+const char* ZMQ_MANAGER_ADDRESS = "ZMQ_MANAGER_ADDRESS";
+const char* ZMQ_PUB_ADDRESS = "ZMQ_PUB_ADDRESS";
+const char* ZMQ_ROUTER_ADDRESS = "ZMQ_ROUTER_ADDRESS";
+
+}  // namespace env
+
 const std::string Broker::TOPIC = "work";
 
 Broker Broker::New() {
@@ -20,9 +27,9 @@ Broker Broker::New() {
 
     std::vector<zmq::socket_t> sockets;
 
-    std::string manager_address = std::getenv("ZMQ_MANAGER_ADDRESS");
-    std::string pub_address = std::getenv("ZMQ_PUB_ADDRESS");
-    std::string router_address = std::getenv("ZMQ_ROUTER_ADDRESS");
+    std::string manager_address = std::getenv(env::ZMQ_MANAGER_ADDRESS);
+    std::string pub_address = std::getenv(env::ZMQ_PUB_ADDRESS);
+    std::string router_address = std::getenv(env::ZMQ_ROUTER_ADDRESS);
 
     zmq::socket_t manager_connection(context, zmq::socket_type::pair);
     manager_connection.bind(manager_address);
@@ -117,9 +124,9 @@ void Broker::ProcessWorkerTaskReply(const task::WorkerMessage& message) {
 
     if (!task_queue_.empty()) {
         SendTaskToWorkerFromQueue(identity);
-    } else {
-        SendResultToManager(message);
     }
+
+    SendResultToManager(message);
 }
 
 void Broker::SendTaskToWorkerFromQueue(const std::string& identity) {

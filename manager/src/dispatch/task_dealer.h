@@ -2,13 +2,13 @@
 
 #include <cppzmq/zmq.hpp>
 
-#include "manager-config/manager_config.h"
+#include "task.pb.h"
 
 class BrokerConnection {
    public:
-    static BrokerConnection New(const manager::Config& config);
+    static BrokerConnection New();
 
-    void SendRequest(const std::string& request);
+    void SendRequest(task::Task task);
 
     std::optional<std::string> ReadReply();
 

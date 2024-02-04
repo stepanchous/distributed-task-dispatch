@@ -52,7 +52,7 @@ class Dispatcher {
 
     void PollComputableTasks();
 
-    std::string FormTaskRequest(
+    task::Task FormTaskRequest(
         ProblemId problem_id, dcmp::VertexDescriptor task_id,
         const std::vector<dcmp::VertexDescriptor>& dependencies) const;
 

@@ -6,7 +6,6 @@
 
 #include "computation.grpc.pb.h"
 #include "dispatch/dispatch.h"
-#include "manager-config/manager_config.h"
 
 class DecompDispatchServiceImpl
     : public dcmp::DecompDispatchService::CallbackService {
@@ -22,4 +21,4 @@ class DecompDispatchServiceImpl
     std::thread dispatcher_thread_;
 };
 
-void RunServer(const manager::Config& config);
+void RunServer();

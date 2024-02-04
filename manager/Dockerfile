@@ -8,15 +8,16 @@ RUN dnf install -y \
     boost-devel \
     protobuf-compiler \
     grpc-devel \
-    json-devel
+    json-devel \
+    zeromq-devel \
+    spdlog-devel
 
-ADD ./src /app/src
+ADD ../build/manager/src/manager /app/manager
 
-WORKDIR /app/src/build
-
-RUN cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build .
-
-ENTRYPOINT ./manager ../config/network.json
+WORKDIR /app
 
 EXPOSE 5300
+EXPOSE 5559
+
+ENTRYPOINT ./manager
+

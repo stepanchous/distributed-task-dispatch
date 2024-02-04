@@ -28,6 +28,8 @@ set(WORKER_SOURCES
     worker.cpp
     ${WORKER_IMPL_DIR}/worker_impl.h
     ${WORKER_IMPL_DIR}/worker_impl.cpp
+    ${WORKER_IMPL_DIR}/thread_pool.h
+    ${WORKER_IMPL_DIR}/thread_pool.cpp
 )
 
 add_executable(worker ${WORKER_SOURCES})

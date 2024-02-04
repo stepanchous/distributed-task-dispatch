@@ -2,3 +2,6 @@
 compile_commands.json
 *.out
 build
+database.db
+db_pb2.py
+__pycache__

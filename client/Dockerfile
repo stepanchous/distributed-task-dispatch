@@ -8,13 +8,15 @@ RUN dnf install -y \
     boost-devel \
     protobuf-compiler \
     grpc-devel \
-    json-devel
+    json-devel \
+    zeromq-devel \
+    spdlog-devel
 
-ADD ./src /app/src
+ADD ../build/client/src/client /app/client
+ADD ../client/src/ASTs /app/ASTs
 
-WORKDIR /app/src/build
+WORKDIR /app
 
-RUN cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build .
+EXPOSE 5300
 
-ENTRYPOINT ./client /app/src/config/network.json /app/src/ASTs/example0.json
+ENTRYPOINT ./client /app/ASTs/example0.json

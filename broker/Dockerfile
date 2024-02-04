@@ -13,7 +13,6 @@ RUN dnf install -y \
     spdlog-devel
 
 ADD ../build/broker/src/broker /app/broker
-ADD ../config/broker_config.json /app/config/broker_config.json
 
 WORKDIR /app
 
@@ -21,5 +20,5 @@ EXPOSE 5559
 EXPOSE 5560
 EXPOSE 5561
 
-ENTRYPOINT ./broker ./config/broker_config.json
+ENTRYPOINT ./broker
 

@@ -11,6 +11,12 @@
 #include "dispatch/task_dealer.h"
 #include "grpc_server.h"
 
+namespace env {
+
+const char* GRPC_ADDRESS = "GRPC_ADDRESS";
+
+}
+
 DecompDispatchServiceImpl::DecompDispatchServiceImpl(Dispatcher& dispatcher)
     : dispatcher_(dispatcher),
       dispatcher_thread_(
@@ -35,8 +41,8 @@ grpc::ServerUnaryReactor* DecompDispatchServiceImpl::CalculateProblem(
     return reactor;
 }
 
-void RunServer(const manager::Config& config) {
-    BrokerConnection requester = BrokerConnection::New(config);
+void RunServer() {
+    BrokerConnection requester = BrokerConnection::New();
 
     Dispatcher dispatcher(requester);
 
@@ -45,21 +51,15 @@ void RunServer(const manager::Config& config) {
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
-    grpc::ServerBuilder server_builder;
-
-    server_builder
-        .AddListeningPort(config.grpc_address,
-                          grpc::InsecureServerCredentials())
-        .RegisterService(&service);
-
     std::unique_ptr<grpc::Server> server(
         grpc::ServerBuilder()
-            .AddListeningPort(config.grpc_address,
+            .AddListeningPort(std::getenv(env::GRPC_ADDRESS),
                               grpc::InsecureServerCredentials())
             .RegisterService(&service)
             .BuildAndStart());
 
-    spdlog::info("gRPC Server is listening on {}", config.grpc_address);
+    spdlog::info("gRPC Server is listening on {}",
+                 std::getenv(env::GRPC_ADDRESS));
 
     server->Wait();
 }

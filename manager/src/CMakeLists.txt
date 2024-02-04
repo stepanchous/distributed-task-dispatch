@@ -28,7 +28,6 @@ find_library(
 
 set(DECOMPOSITION_DIR decomposition)
 set(GRPC_SERVER_DIR grpc-server)
-set(MANAGER_CONFIG_DIR manager-config)
 set(DISPATCH_DIR dispatch)
 
 set(MANAGER_SOURCES
@@ -45,8 +44,6 @@ set(MANAGER_SOURCES
   ${DECOMPOSITION_DIR}/decomposition.cpp
   ${GRPC_SERVER_DIR}/grpc_server.h
   ${GRPC_SERVER_DIR}/grpc_server.cpp
-  ${MANAGER_CONFIG_DIR}/manager_config.h
-  ${MANAGER_CONFIG_DIR}/manager_config.cpp
   ${DISPATCH_DIR}/dispatch.h
   ${DISPATCH_DIR}/dispatch.cpp
   ${DISPATCH_DIR}/task_dealer.h

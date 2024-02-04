@@ -90,7 +90,7 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
     return PROBLEM_ID - 1;
 }
 
-std::string Dispatcher::FormTaskRequest(
+task::Task Dispatcher::FormTaskRequest(
     ProblemId problem_id, dcmp::VertexDescriptor task_id,
     const std::vector<dcmp::VertexDescriptor>& dependencies) const {
     auto id = new task::TaskId;
@@ -109,7 +109,7 @@ std::string Dispatcher::FormTaskRequest(
 
     spdlog::info("Manager -> Broker: {}", task);
 
-    return task.SerializeAsString();
+    return task;
 }
 
 task::Operand Dispatcher::FormOperand(ProblemId problem_id,
