@@ -1,0 +1,38 @@
+version: '3'
+services:
+  broker:
+    image: broker
+    build: 
+      context: .
+      dockerfile: ./broker/Dockerfile
+    environment:
+      - ZMQ_MANAGER_ADDRESS=tcp://*:5559
+      - ZMQ_PUB_ADDRESS=tcp://*:5560
+      - ZMQ_ROUTER_ADDRESS=tcp://*:5561
+
+  worker1:
+    image: worker
+    depends_on:
+      - broker
+    build: 
+      context: .
+      dockerfile: ./worker/Dockerfile
+    environment:
+      - ZMQ_SUB_ADDRESS=tcp://broker:5560
+      - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - WORKER_IDENTITY=w1
+      - CORE_COUNT=4
+
+  worker2:
+    image: worker
+    depends_on:
+      - broker
+    build: 
+      context: .
+      dockerfile: ./worker/Dockerfile
+    environment:
+      - ZMQ_SUB_ADDRESS=tcp://broker:5560
+      - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - WORKER_IDENTITY=w2
+      - CORE_COUNT=2
+
