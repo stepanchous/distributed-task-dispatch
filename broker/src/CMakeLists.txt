@@ -29,8 +29,6 @@ set(BROKER_SOURCES
     broker.cpp
     ${BROKER_IMPL_DIR}/broker_impl.h
     ${BROKER_IMPL_DIR}/broker_impl.cpp
-    ${BROKER_CONFIG_DIR}/broker_config.h
-    ${BROKER_CONFIG_DIR}/broker_config.cpp
 )
 
 add_executable(broker ${BROKER_SOURCES})

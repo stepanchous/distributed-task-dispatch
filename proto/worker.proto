@@ -1,16 +1,18 @@
 syntax = "proto3";
 
-package worker;
+import "task.proto";
 
-message TaskId {
-    uint32 problem_id = 1;
-    uint32 task_id = 2;
+package task;
+
+message WorkerTaskId {
+    string identity = 1;
+    TaskId id = 2;
 }
 
-message Message {
+message WorkerMessage {
     oneof data {
-        uint32 core_count = 5; 
-        TaskId task_id = 6;
+        uint32 core_count = 4; 
+        WorkerTaskId task_id = 5;
     }
 }
 

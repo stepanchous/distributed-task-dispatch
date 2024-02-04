@@ -6,12 +6,8 @@
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Invalid number of arguments" << std::endl;
-        return 1;
+        return -1;
     }
-
-    // DecompDispatchServiceImpl server;
-    //
-    // server.Run(manager::Config::FromJson(argv[1]));
 
     RunServer(manager::Config::FromJson(argv[1]));
 }

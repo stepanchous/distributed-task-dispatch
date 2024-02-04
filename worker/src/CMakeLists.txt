@@ -22,10 +22,12 @@ find_library(
     PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
 )
 
-set(BROKER_IMPL_DIR broker-impl)
+set(WORKER_IMPL_DIR worker-impl)
 
 set(WORKER_SOURCES
     worker.cpp
+    ${WORKER_IMPL_DIR}/worker_impl.h
+    ${WORKER_IMPL_DIR}/worker_impl.cpp
 )
 
 add_executable(worker ${WORKER_SOURCES})

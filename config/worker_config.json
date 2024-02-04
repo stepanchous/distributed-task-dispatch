@@ -1,4 +1,4 @@
 {
-    "sub_address": "tcp://localhost:5561",
+    "sub_address": "tcp://localhost:5560",
     "dealer_address": "tcp://localhost:5561"
 }

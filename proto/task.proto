@@ -8,8 +8,7 @@ message StaticOperand {
 }
 
 message DynOperand {
-    uint32 problem_id = 3;
-    uint32 task_id = 4;
+    TaskId id = 3;
     bool is_scalar = 5;
     
 }
@@ -21,9 +20,14 @@ message Operand {
     }
 }
 
+message TaskId {
+    uint32 problem_id = 12;
+    uint32 task_id = 13;
+}
+
 message Task {
-    uint32 problem_id = 8;
-    uint32 task_id = 9;
+    TaskId id = 9;
     uint32 operation_type = 10;
     repeated Operand operands = 11;
 }
+

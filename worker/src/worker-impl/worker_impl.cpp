@@ -1,37 +1,50 @@
+#include <spdlog/spdlog.h>
+
 #include <cstdlib>
 #include <string>
 
+#include "communiation/read_message.h"
 #include "cppzmq/zmq.hpp"
+#include "log_format/log_format.h"
 #include "worker.pb.h"
 #include "worker_impl.h"
 
-const char* CORE_COUNT = "CORE_COUNT";
-const char* WORKER_IDENTITY = "WORKER_IDENTITY";
-
-Worker Worker::New(const worker::Config& config) {
+Worker Worker::New() {
     zmq::context_t context(1);
+
+    std::string sub_address = std::getenv("ZMQ_SUB_ADDRESS");
+    std::string dealer_address = std::getenv("ZMQ_DEALER_ADDRESS");
+    std::string identity = std::getenv("WORKER_IDENTITY");
 
     zmq::socket_t subscriber(context, zmq::socket_type::sub);
     subscriber.set(zmq::sockopt::subscribe, "");
-    subscriber.connect(config.sub_address);
+    subscriber.connect(sub_address);
+
+    spdlog::info("Worker connected to publisher on {}", sub_address);
 
     zmq::socket_t dealer(context, zmq::socket_type::dealer);
-    dealer.set(zmq::sockopt::routing_id, std::getenv(WORKER_IDENTITY));
-    dealer.connect(config.dealer_address);
+    dealer.set(zmq::sockopt::routing_id, identity);
+    dealer.connect(dealer_address);
 
-    return Worker(std::move(context), std::move(subscriber), std::move(dealer));
+    spdlog::info("Worker connected to dealer on {}", dealer_address);
+
+    return Worker(std::move(context), std::move(subscriber), std::move(dealer),
+                  std::move(identity));
 }
 
 Worker::Worker(zmq::context_t context, zmq::socket_t subscriber,
-               zmq::socket_t dealer)
+               zmq::socket_t dealer, std::string identity)
     : context_(std::move(context)),
       subscriber_(std::move(subscriber)),
       dealer_(std::move(dealer)),
-      core_count_(std::stoi(std::getenv(CORE_COUNT))) {
+      identity_(std::move(identity)),
+      core_count_(std::stoi(std::getenv("CORE_COUNT"))) {
     poll_items_.push_back({subscriber_, 0, ZMQ_POLLIN, 0});
 }
 
 void Worker::Run() {
+    spdlog::info("Worker started");
+
     SendAckMessage();
 
     while (true) {
@@ -42,13 +55,28 @@ void Worker::Run() {
             zmq::message_t request;
 
             subscriber_.recv(topic, zmq::recv_flags::dontwait);
-            subscriber_.recv(request, zmq::recv_flags::dontwait);
+
+            if (subscriber_.recv(request, zmq::recv_flags::dontwait)) {
+                task::WorkerTaskId task =
+                    FromMessage<task::WorkerTaskId>(request);
+
+                if (task.identity() != identity_) {
+                    spdlog::info("Discarding request");
+                    continue;
+                }
+
+                spdlog::info("Worker <- Broker {}", task);
+
+                sleep(10);
+            }
+
+            spdlog::info("Finished work");
         }
     }
 }
 
 void Worker::SendAckMessage() {
-    worker::Message ack_message;
+    task::WorkerMessage ack_message;
 
     ack_message.set_core_count(core_count_);
 

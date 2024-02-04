@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cppzmq/zmq.hpp>
+#include <queue>
 #include <unordered_map>
 
-#include "broker-config/broker_config.h"
+#include "task.pb.h"
+#include "worker.pb.h"
 
 class Broker {
    public:
-    static Broker New(const broker::Config& config);
+    static Broker New();
 
     void Run();
 
@@ -20,6 +22,21 @@ class Broker {
    private:
     void ReceiveWorkerMessage();
 
+    void RegisterWorker(const std::string& identity,
+                        const task::WorkerMessage& message);
+
+    void ProcessWorkerTaskReply(const task::WorkerMessage& message);
+
+    void SendTaskToWorkerFromQueue(const std::string& identity);
+
+    void SendResultToManager(const task::WorkerMessage& worker_message);
+
+    void SendTaskToWorker(const task::Task& manager_task);
+
+    void SendTaskToWorkerImpl(const task::WorkerTaskId& worker_task);
+
+    void ReceiveManagerRequest();
+
    private:
     zmq::context_t context_;
     zmq::socket_t manager_connection_;
@@ -28,4 +45,7 @@ class Broker {
     std::vector<zmq::pollitem_t> poll_items_;
     std::unordered_map<std::string, size_t>
         worker_routing_id_to_available_core_count_{};
+    std::queue<task::Task> task_queue_{};
+
+    static const std::string TOPIC;
 };

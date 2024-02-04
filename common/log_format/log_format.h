@@ -30,7 +30,8 @@ struct fmt::formatter<task::DynOperand> {
         return fmt::format_to(
             ctx.out(),
             "[DynOperand] problem_id: {}, task_id: {}, is_scalar: {}",
-            operand.problem_id(), operand.task_id(), operand.is_scalar());
+            operand.id().problem_id(), operand.id().task_id(),
+            operand.is_scalar());
     }
 };
 
@@ -53,6 +54,17 @@ struct fmt::formatter<task::Operand> {
 };
 
 template <>
+struct fmt::formatter<task::TaskId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const task::TaskId& task_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[TaskId] problem_id: {}, task_id: {}",
+                              task_id.problem_id(), task_id.task_id());
+    }
+};
+
+template <>
 struct fmt::formatter<task::Task> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
@@ -63,11 +75,10 @@ struct fmt::formatter<task::Task> {
         const std::string operation_type(operation_type_sv.begin(),
                                          operation_type_sv.end());
 
-        auto it = fmt::format_to(
-            ctx.out(),
-            "[Task] problem_id: {}, task_id: {}, operation_type: {}, "
-            "operands: ",
-            task.problem_id(), task.task_id(), operation_type);
+        auto it = fmt::format_to(ctx.out(),
+                                 "[Task] id: {}, operation_type: {}, "
+                                 "operands: ",
+                                 task.id(), operation_type);
 
         bool first = true;
 
@@ -86,23 +97,22 @@ struct fmt::formatter<task::Task> {
 };
 
 template <>
-struct fmt::formatter<worker::TaskId> {
+struct fmt::formatter<task::WorkerTaskId> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const worker::TaskId& task_id, FormatContext& ctx) {
-        return fmt::format_to(ctx.out(),
-                              "[WorkerTaskId] problem_id: {}, task_id: {}",
-                              task_id.problem_id(), task_id.task_id());
+    auto format(const task::WorkerTaskId& task_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[WorkerTaskId] identity: {}, id: {}",
+                              task_id.identity(), task_id.id());
     }
 };
 
 template <>
-struct fmt::formatter<worker::Message> {
+struct fmt::formatter<task::WorkerMessage> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const worker::Message& message, FormatContext& ctx) {
+    auto format(const task::WorkerMessage& message, FormatContext& ctx) {
         if (message.has_task_id()) {
             return fmt::format_to(ctx.out(), "[WorkerMessage] task_id: {}",
                                   message.task_id());

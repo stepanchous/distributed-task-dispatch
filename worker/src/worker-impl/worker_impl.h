@@ -2,17 +2,15 @@
 
 #include <cppzmq/zmq.hpp>
 
-#include "worker-config/worker_config.h"
-
 class Worker {
    public:
-    static Worker New(const worker::Config& config);
+    static Worker New();
 
     void Run();
 
    private:
     Worker(zmq::context_t context, zmq::socket_t subscriber,
-           zmq::socket_t dealer_);
+           zmq::socket_t dealer_, std::string identity);
 
     void SendAckMessage();
 
@@ -21,5 +19,6 @@ class Worker {
     zmq::socket_t subscriber_;
     zmq::socket_t dealer_;
     std::vector<zmq::pollitem_t> poll_items_;
+    std::string identity_;
     size_t core_count_;
 };

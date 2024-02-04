@@ -93,10 +93,12 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
 std::string Dispatcher::FormTaskRequest(
     ProblemId problem_id, dcmp::VertexDescriptor task_id,
     const std::vector<dcmp::VertexDescriptor>& dependencies) const {
-    task::Task task;
+    auto id = new task::TaskId;
+    id->set_problem_id(problem_id);
+    id->set_task_id(task_id);
 
-    task.set_problem_id(problem_id);
-    task.set_task_id(task_id);
+    task::Task task;
+    task.set_allocated_id(id);
     task.set_operation_type(problem_id_to_calculation_data_.at(problem_id)
                                 .decompositor.GetOperationType(task_id));
 
@@ -118,9 +120,12 @@ task::Operand Dispatcher::FormOperand(ProblemId problem_id,
                                    .computed_tasks.at(operand_id);
 
     if (std::holds_alternative<NodeId>(node_result)) {
+        auto id = new task::TaskId;
+        id->set_problem_id(problem_id);
+        id->set_task_id(operand_id);
+
         task::DynOperand* dyn_operand = new task::DynOperand;
-        dyn_operand->set_problem_id(problem_id);
-        dyn_operand->set_task_id(operand_id);
+        dyn_operand->set_allocated_id(id);
         dyn_operand->set_is_scalar(std::get<NodeId>(node_result).is_scalar);
 
         operand.set_allocated_dyn_operand(dyn_operand);
