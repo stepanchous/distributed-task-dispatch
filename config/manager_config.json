@@ -1,3 +1,4 @@
 {
-    "addr_uri": "0.0.0.0:5300"
+    "grpc_address": "0.0.0.0:5300",
+    "broker_address": "tcp://localhost:5559"
 }

@@ -63,9 +63,11 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
     calc_data.computable_task_to_dependencies =
         calc_data.decompositor.GetComputableTasks(computed_tasks);
 
+    ProblemId problem_id;
+
     {
         std::lock_guard<std::mutex> l(m_);
-        ProblemId problem_id = PROBLEM_ID;
+        problem_id = PROBLEM_ID;
         problem_id_to_calculation_data_.emplace(problem_id,
                                                 std::move(calc_data));
         problem_id_to_sync_data_.emplace(problem_id, sync_data);
@@ -74,7 +76,7 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
         // it when computation is done.
     }
 
-    std::cout << "Got problem " << PROBLEM_ID - 1 << std::endl;
+    spdlog::info("Manager got problem with id {}", problem_id);
 
     {
         std::unique_lock cv_ul(sync_data.cv_m);

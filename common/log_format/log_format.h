@@ -7,6 +7,7 @@
 
 #include "domain/domain.h"
 #include "task.pb.h"
+#include "worker.pb.h"
 
 template <>
 struct fmt::formatter<task::StaticOperand> {
@@ -81,5 +82,35 @@ struct fmt::formatter<task::Task> {
         }
 
         return it;
+    }
+};
+
+template <>
+struct fmt::formatter<worker::TaskId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const worker::TaskId& task_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(),
+                              "[WorkerTaskId] problem_id: {}, task_id: {}",
+                              task_id.problem_id(), task_id.task_id());
+    }
+};
+
+template <>
+struct fmt::formatter<worker::Message> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const worker::Message& message, FormatContext& ctx) {
+        if (message.has_task_id()) {
+            return fmt::format_to(ctx.out(), "[WorkerMessage] task_id: {}",
+                                  message.task_id());
+        } else if (message.has_core_count()) {
+            return fmt::format_to(ctx.out(), "[WorkerAck] core_count: {}",
+                                  message.core_count());
+        } else {
+            return fmt::format_to(ctx.out(), "[WorkerMessage] Invalid");
+        }
     }
 };

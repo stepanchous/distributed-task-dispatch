@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package worker;
+
+message TaskId {
+    uint32 problem_id = 1;
+    uint32 task_id = 2;
+}
+
+message Message {
+    oneof data {
+        uint32 core_count = 5; 
+        TaskId task_id = 6;
+    }
+}
+

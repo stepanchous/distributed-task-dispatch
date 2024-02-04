@@ -2,9 +2,11 @@
 
 #include <cppzmq/zmq.hpp>
 
+#include "manager-config/manager_config.h"
+
 class BrokerConnection {
    public:
-    static BrokerConnection New(/* config */);
+    static BrokerConnection New(const manager::Config& config);
 
     void SendRequest(const std::string& request);
 

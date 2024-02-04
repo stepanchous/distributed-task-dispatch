@@ -6,9 +6,10 @@
 
 namespace manager {
 
-constexpr std::string ADDR_URI = "addr_uri";
+constexpr std::string GRPC_ADDRESS = "grpc_address";
+constexpr std::string BROKER_ADDRESS = "broker_address";
 
-Config Config::FromJson(const std::string path) {
+Config Config::FromJson(const std::string& path) {
     std::ifstream f(path);
     if (!f) {
         throw std::invalid_argument("Unable to open file: " + path);
@@ -17,7 +18,8 @@ Config Config::FromJson(const std::string path) {
     nlohmann::json data = nlohmann::json::parse(f);
 
     return Config{
-        .addr_uri = data.at(ADDR_URI),
+        .grpc_address = data.at(GRPC_ADDRESS),
+        .broker_address = data.at(BROKER_ADDRESS),
     };
 }
 

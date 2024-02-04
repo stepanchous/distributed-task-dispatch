@@ -12,7 +12,11 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gRPC REQUIRED)
 
-add_library(proto-objects computation.proto task.proto)
+add_library(proto-objects 
+    computation.proto
+    task.proto
+    worker.proto
+)
 
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf gRPC::grpc++)
 

@@ -2,13 +2,13 @@
 
 #include <string>
 
-namespace manager {
+namespace worker {
 
 struct Config {
     static Config FromJson(const std::string& path);
 
-    std::string grpc_address;
-    std::string broker_address;
+    std::string sub_address;
+    std::string dealer_address;
 };
 
-}  // namespace manager
+}  // namespace worker

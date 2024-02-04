@@ -1,8 +1,8 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/health_check_service_interface.h>
 #include <grpcpp/security/server_credentials.h>
+#include <spdlog/spdlog.h>
 
-#include <iostream>
 #include <memory>
 #include <sstream>
 
@@ -36,7 +36,7 @@ grpc::ServerUnaryReactor* DecompDispatchServiceImpl::CalculateProblem(
 }
 
 void RunServer(const manager::Config& config) {
-    BrokerConnection requester = BrokerConnection::New();
+    BrokerConnection requester = BrokerConnection::New(config);
 
     Dispatcher dispatcher(requester);
 
@@ -48,17 +48,18 @@ void RunServer(const manager::Config& config) {
     grpc::ServerBuilder server_builder;
 
     server_builder
-        .AddListeningPort(config.addr_uri, grpc::InsecureServerCredentials())
+        .AddListeningPort(config.grpc_address,
+                          grpc::InsecureServerCredentials())
         .RegisterService(&service);
 
     std::unique_ptr<grpc::Server> server(
         grpc::ServerBuilder()
-            .AddListeningPort(config.addr_uri,
+            .AddListeningPort(config.grpc_address,
                               grpc::InsecureServerCredentials())
             .RegisterService(&service)
             .BuildAndStart());
 
-    std::cout << "Server listening on " << config.addr_uri << std::endl;
+    spdlog::info("gRPC Server is listening on {}", config.grpc_address);
 
     server->Wait();
 }

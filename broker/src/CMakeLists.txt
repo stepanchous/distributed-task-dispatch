@@ -11,6 +11,7 @@ add_compile_options(-Wextra)
 add_compile_options(-pedantic)
 
 find_package(spdlog REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(PC_ZeroMQ QUIET zmq)
@@ -22,11 +23,14 @@ find_library(
 )
 
 set(BROKER_IMPL_DIR broker-impl)
+set(BROKER_CONFIG_DIR broker-config)
 
 set(BROKER_SOURCES
     broker.cpp
     ${BROKER_IMPL_DIR}/broker_impl.h
     ${BROKER_IMPL_DIR}/broker_impl.cpp
+    ${BROKER_CONFIG_DIR}/broker_config.h
+    ${BROKER_CONFIG_DIR}/broker_config.cpp
 )
 
 add_executable(broker ${BROKER_SOURCES})
@@ -34,3 +38,4 @@ add_executable(broker ${BROKER_SOURCES})
 target_link_libraries(broker PRIVATE ${ZeroMQ_LIBRARY})
 target_link_libraries(broker PRIVATE proto-objects)
 target_link_libraries(broker PRIVATE spdlog::spdlog)
+target_link_libraries(broker PRIVATE nlohmann_json::nlohmann_json)

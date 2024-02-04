@@ -1,14 +1,15 @@
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 #include "cppzmq/zmq.hpp"
 #include "task_dealer.h"
 
-BrokerConnection BrokerConnection::New() {
+BrokerConnection BrokerConnection::New(const manager::Config& config) {
     zmq::context_t context(1);
 
     zmq::socket_t broker_connection(context, zmq::socket_type::pair);
-    broker_connection.set(zmq::sockopt::routing_id, "manager");
-    broker_connection.connect("tcp://localhost:5559");
+    broker_connection.connect(config.broker_address);
 
     return BrokerConnection(std::move(context), std::move(broker_connection));
 }
@@ -21,9 +22,9 @@ void BrokerConnection::SendRequest(const std::string& request) {
         broker_connection_.send(zmq::message_t(request), zmq::send_flags::none);
 
     if (res) {
-        std::cout << "request sent" << std::endl;
+        spdlog::info("Message sent");
     } else {
-        std::cout << "could not send request" << std::endl;
+        spdlog::error("Message was not sent");
     }
 }
 

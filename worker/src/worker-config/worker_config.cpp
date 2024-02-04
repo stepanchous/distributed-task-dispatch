@@ -2,11 +2,12 @@
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
-#include "client_config.h"
+#include "worker_config.h"
 
-namespace client {
+namespace worker {
 
-constexpr std::string TARGET = "target";
+constexpr std::string SUB_ADDRESS = "sub_address";
+constexpr std::string DEALER_ADDRESS = "dealer_address";
 
 Config Config::FromJson(const std::string& path) {
     std::ifstream f(path);
@@ -17,8 +18,9 @@ Config Config::FromJson(const std::string& path) {
     nlohmann::json data = nlohmann::json::parse(f);
 
     return Config{
-        .target = data.at(TARGET),
+        .sub_address = data.at(SUB_ADDRESS),
+        .dealer_address = data.at(DEALER_ADDRESS),
     };
 }
 
-}  // namespace client
+}  // namespace worker
