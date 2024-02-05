@@ -16,6 +16,7 @@ add_library(proto-objects
     computation.proto
     task.proto
     worker.proto
+    db.proto
 )
 
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf gRPC::grpc++)

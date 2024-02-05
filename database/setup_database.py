@@ -1,7 +1,7 @@
 import sqlite3
 import db_pb2
 
-with sqlite3.connect("database/database.db") as conn:
+with sqlite3.connect("database.db") as conn:
     cursor = conn.cursor()
 
     cursor.execute('''

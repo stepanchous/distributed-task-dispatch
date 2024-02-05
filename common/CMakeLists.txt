@@ -8,4 +8,6 @@ set(CMAKE_INCLUDE_CURRENT_BINARY_DIR ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_subdirectory(domain)

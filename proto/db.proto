@@ -2,6 +2,12 @@ syntax = "proto3";
 
 package db;
 
+service DatabaseService {
+    rpc WriteDynamicData(DynamicRecord) returns (Empty) {}
+    rpc ReadData(RecordId) returns (Field) {}
+    rpc ClearIntermediateCalculations(ProblemId) returns (Empty) {}
+}
+
 message Scalar {
     int32 value = 1;
 }
@@ -10,9 +16,36 @@ message List {
     repeated int32 values = 2;
 }
 
+message DynamicRecordId {
+    uint32 problem_id = 3;
+    uint32 task_id = 4;
+}
+
 message Field {
     oneof data {
-        Scalar scalar = 3;
-        List list = 4;
+        Scalar scalar = 5;
+        List list = 6;
     }
 }
+
+message DynamicRecord {
+    DynamicRecordId record_id = 7;
+    Field field = 8;
+}
+
+message StaticRecordId {
+    string identifier = 9;
+}
+
+message RecordId {
+    oneof id {
+        DynamicRecordId dyn_id = 10;
+        StaticRecordId static_id = 11;
+    }
+}
+
+message ProblemId {
+    uint32 problem_id = 12;
+}
+
+message Empty {}

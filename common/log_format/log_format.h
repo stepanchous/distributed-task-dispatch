@@ -4,7 +4,9 @@
 #include <spdlog/spdlog.h>
 
 #include <magic_enum/magic_enum.hpp>
+#include <stdexcept>
 
+#include "db.pb.h"
 #include "domain/domain.h"
 #include "task.pb.h"
 #include "worker.pb.h"
@@ -121,6 +123,120 @@ struct fmt::formatter<task::WorkerMessage> {
                                   message.core_count());
         } else {
             return fmt::format_to(ctx.out(), "[WorkerMessage] Invalid");
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<db::ProblemId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::ProblemId& problem_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[db::ProblemID] problem_id: {}",
+                              problem_id.problem_id());
+    }
+};
+
+template <>
+struct fmt::formatter<db::StaticRecordId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::StaticRecordId& record_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[StaticRecordId] identifier: {}",
+                              record_id.identifier());
+    }
+};
+
+template <>
+struct fmt::formatter<db::DynamicRecordId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::DynamicRecordId& record_id, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(),
+                              "[DynamicRecordId] problem_id: {}, task_id: {}",
+                              record_id.problem_id(), record_id.task_id());
+    }
+};
+
+template <>
+struct fmt::formatter<db::RecordId> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::RecordId& record_id, FormatContext& ctx) {
+        if (record_id.has_dyn_id()) {
+            return fmt::format_to(ctx.out(), "[RecordId] dyn_id: {}",
+                                  record_id.dyn_id());
+        } else if (record_id.has_static_id()) {
+            return fmt::format_to(ctx.out(), "[RecordId] static_id: {}",
+                                  record_id.static_id());
+        } else {
+            throw std::logic_error("Invlaid message");
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<db::Scalar> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::Scalar& scalar, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[Scalar] scalar: {}", scalar.value());
+    }
+};
+
+template <>
+struct fmt::formatter<db::List> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::List& list, FormatContext& ctx) {
+        auto it = fmt::format_to(ctx.out(), "[List] list: ");
+
+        bool first = true;
+        for (const auto& value : list.values()) {
+            if (first) {
+                it = fmt::format_to(it, "{}", value);
+                first = false;
+                continue;
+            }
+
+            it = fmt::format_to(it, ", {}", value);
+        }
+
+        return it;
+    }
+};
+
+template <>
+struct fmt::formatter<db::DynamicRecord> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::DynamicRecord& dyn_record, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(),
+                              "[DynamicRecord] record_id: {}, field: {}",
+                              dyn_record.record_id(), dyn_record.field());
+    }
+};
+
+template <>
+struct fmt::formatter<db::Field> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const db::Field& field, FormatContext& ctx) {
+        if (field.has_scalar()) {
+            return fmt::format_to(ctx.out(), "[Field] data: {}",
+                                  field.scalar());
+        } else if (field.has_list()) {
+            return fmt::format_to(ctx.out(), "[Field] data: {}", field.list());
+        } else {
+            throw std::logic_error("Invalid message");
         }
     }
 };

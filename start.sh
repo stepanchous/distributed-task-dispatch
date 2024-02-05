@@ -15,13 +15,12 @@ fi
 
 protoc --proto_path=proto --python_out=database db.proto
 
-python database/setup_database.py
+docker build -t worker -f ./worker/Dockerfile .
+docker build -t broker -f ./broker/Dockerfile .
+docker build -t manager -f ./manager/Dockerfile .
+docker build -t client -f ./client/Dockerfile .
+docker build -t db_server -f ./database/Dockerfile .
 
-# docker build -t worker -f ./worker/Dockerfile .
-# docker build -t broker -f ./broker/Dockerfile .
-# docker build -t manager -f ./manager/Dockerfile .
-# docker build -t client -f ./client/Dockerfile .
-#
-# docker-compose up
+docker-compose up
 
 wait
