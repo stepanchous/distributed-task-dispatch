@@ -1,5 +1,0 @@
-{
-    "manager_address": "tcp://*:5559",
-    "pub_address": "tcp://*:5560",
-    "router_address": "tcp://*:5561"
-}
