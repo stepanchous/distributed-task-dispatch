@@ -17,8 +17,9 @@ const char* GRPC_ADDRESS = "GRPC_ADDRESS";
 
 }
 
-DecompDispatchServiceImpl::DecompDispatchServiceImpl(Dispatcher& dispatcher)
-    : dispatcher_(dispatcher),
+DecompDispatchServiceImpl::DecompDispatchServiceImpl(
+    BrokerConnection broker_connection)
+    : dispatcher_(std::move(broker_connection)),
       dispatcher_thread_(
           std::thread(&Dispatcher::RunDispatcher, &dispatcher_)) {}
 
@@ -42,11 +43,7 @@ grpc::ServerUnaryReactor* DecompDispatchServiceImpl::CalculateProblem(
 }
 
 void RunServer() {
-    BrokerConnection requester = BrokerConnection::New();
-
-    Dispatcher dispatcher(requester);
-
-    DecompDispatchServiceImpl service(dispatcher);
+    DecompDispatchServiceImpl service(BrokerConnection::New());
 
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();

@@ -14,15 +14,13 @@
 
 ProblemId Dispatcher::PROBLEM_ID = 0;
 
-Dispatcher::Dispatcher(BrokerConnection& broker_connection)
-    : broker_connection_(broker_connection) {}
+Dispatcher::Dispatcher(BrokerConnection broker_connection)
+    : broker_connection_(std::move(broker_connection)) {}
 
 void Dispatcher::RunDispatcher() {
     while (true) {
         PollComputableTasks();
-
-        // ReadReply
-        // if reply update calculation data
+        UpdateComputableTasks();
     }
 }
 
@@ -39,9 +37,15 @@ void Dispatcher::PollComputableTasks() {
     }
 }
 
-ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
-    SyncData sync_data{};
+void Dispatcher::UpdateComputableTasks() {
+    std::optional<task::TaskId> task_id = broker_connection_.ReadReply();
 
+    if (!task_id.has_value()) {
+        return;
+    }
+}
+
+ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
     CalculationData calc_data(dcmp::TaskDecompositor::New(std::move(ast)));
 
     for (const auto& [task_id, expr_data] :
@@ -64,6 +68,7 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
         calc_data.decompositor.GetComputableTasks(computed_tasks);
 
     ProblemId problem_id;
+    SyncData sync_data;
 
     {
         std::lock_guard<std::mutex> l(m_);
@@ -79,8 +84,10 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
     spdlog::info("Manager got problem with id {}", problem_id);
 
     {
-        std::unique_lock cv_ul(sync_data.cv_m);
-        sync_data.cv.wait(cv_ul, [&] { return sync_data.is_computed; });
+        std::unique_lock cv_ul(problem_id_to_sync_data_.at(problem_id).cv_m);
+        problem_id_to_sync_data_.at(problem_id).cv.wait(cv_ul, [&] {
+            return problem_id_to_sync_data_.at(problem_id).is_computed;
+        });
     }
 
     // TODO: 1. Read result from storage

@@ -96,7 +96,7 @@ void Broker::ReceiveWorkerMessage() {
     if (message.has_core_count()) {
         RegisterWorker(str_identity, message);
     } else if (message.has_task_id()) {
-        ProcessWorkerTaskReply(message);
+        ProcessWorkerTaskReply(message.task_id());
     } else {
         throw std::logic_error("Invalid message");
     }
@@ -115,10 +115,10 @@ void Broker::RegisterWorker(const std::string& identity,
     spdlog::info("Register Worker({}) {}", identity, message.core_count());
 }
 
-void Broker::ProcessWorkerTaskReply(const task::WorkerMessage& message) {
+void Broker::ProcessWorkerTaskReply(const task::WorkerTaskId& message) {
     spdlog::info("Broker <- Worker {}", message);
 
-    const std::string& identity = message.task_id().identity();
+    const std::string& identity = message.identity();
 
     ++worker_routing_id_to_available_core_count_.at(identity);
 
@@ -140,12 +140,12 @@ void Broker::SendTaskToWorkerFromQueue(const std::string& identity) {
     SendTaskToWorkerImpl(worker_task);
 }
 
-void Broker::SendResultToManager(const task::WorkerMessage& worker_message) {
+void Broker::SendResultToManager(const task::WorkerTaskId& worker_task_id) {
     manager_connection_.send(
-        zmq::message_t(worker_message.task_id().id().SerializeAsString()),
+        zmq::message_t(worker_task_id.id().SerializeAsString()),
         zmq::send_flags::none);
 
-    spdlog::info("Broker -> Manager {}", worker_message.task_id());
+    spdlog::info("Broker -> Manager {}", worker_task_id.id());
 }
 
 void Broker::SendTaskToWorker(const task::Task& manager_task) {

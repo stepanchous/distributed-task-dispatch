@@ -34,7 +34,7 @@ void BrokerConnection::SendRequest(task::Task task) {
     }
 }
 
-std::optional<std::string> BrokerConnection::ReadReply() {
+std::optional<task::TaskId> BrokerConnection::ReadReply() {
     zmq::message_t reply;
     std::optional<size_t> byte_count =
         broker_connection_.recv(reply, zmq::recv_flags::dontwait);
@@ -43,9 +43,9 @@ std::optional<std::string> BrokerConnection::ReadReply() {
         return {};
     }
 
-    auto finished_task = FromMessage<task::Task>(reply);
+    auto finished_task = FromMessage<task::TaskId>(reply);
 
     spdlog::info("Manager <- Broker {}", finished_task);
 
-    return reply.str();
+    return finished_task;
 }

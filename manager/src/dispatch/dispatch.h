@@ -27,7 +27,7 @@ using NodeResultId = std::variant<NodeId, DataId>;
 
 class Dispatcher {
    public:
-    Dispatcher(BrokerConnection& requester);
+    Dispatcher(BrokerConnection requester);
 
     void RunDispatcher();
 
@@ -50,7 +50,16 @@ class Dispatcher {
         std::mutex cv_m{};
     };
 
+   private:
+    std::map<ProblemId, CalculationData> problem_id_to_calculation_data_{};
+    std::unordered_map<ProblemId, SyncData&> problem_id_to_sync_data_{};
+    BrokerConnection broker_connection_;
+    static ProblemId PROBLEM_ID;
+    std::mutex m_;
+
     void PollComputableTasks();
+
+    void UpdateComputableTasks();
 
     task::Task FormTaskRequest(
         ProblemId problem_id, dcmp::VertexDescriptor task_id,
@@ -60,11 +69,4 @@ class Dispatcher {
                               dcmp::VertexDescriptor operand_id) const;
 
     static bool IsScalarVariable(const std::string& variable_id);
-
-   private:
-    std::map<ProblemId, CalculationData> problem_id_to_calculation_data_{};
-    std::unordered_map<ProblemId, SyncData&> problem_id_to_sync_data_{};
-    BrokerConnection& broker_connection_;
-    static ProblemId PROBLEM_ID;
-    std::mutex m_;
 };

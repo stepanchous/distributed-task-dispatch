@@ -10,7 +10,7 @@ class BrokerConnection {
 
     void SendRequest(task::Task task);
 
-    std::optional<std::string> ReadReply();
+    std::optional<task::TaskId> ReadReply();
 
    private:
     BrokerConnection(zmq::context_t context, zmq::socket_t dealer);

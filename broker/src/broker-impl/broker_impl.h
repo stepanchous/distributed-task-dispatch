@@ -25,11 +25,11 @@ class Broker {
     void RegisterWorker(const std::string& identity,
                         const task::WorkerMessage& message);
 
-    void ProcessWorkerTaskReply(const task::WorkerMessage& message);
+    void ProcessWorkerTaskReply(const task::WorkerTaskId& worker_task_id);
 
     void SendTaskToWorkerFromQueue(const std::string& identity);
 
-    void SendResultToManager(const task::WorkerMessage& worker_message);
+    void SendResultToManager(const task::WorkerTaskId& worker_task);
 
     void SendTaskToWorker(const task::Task& manager_task);
 
