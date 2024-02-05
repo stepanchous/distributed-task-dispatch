@@ -12,6 +12,7 @@ add_compile_options(-pedantic)
 
 find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(spdlog REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(PC_ZeroMQ QUIET zmq)
@@ -38,3 +39,5 @@ target_link_libraries(worker PRIVATE ${ZeroMQ_LIBRARY})
 target_link_libraries(worker PRIVATE proto-objects)
 target_link_libraries(worker PRIVATE spdlog::spdlog)
 target_link_libraries(worker PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(worker PRIVATE domain)
+target_link_libraries(worker PRIVATE db_client)

@@ -43,13 +43,11 @@ struct ListHasher {
     size_t operator()(const List& l) const;
 };
 
-Scalar Mul(const List& l);
-Scalar Sum(const List& l);
 Scalar Min(const List& l);
 Scalar Max(const List& l);
+Scalar Mul(const List& l);
+Scalar Sum(const List& l);
 Scalar Size(const List& l);
-
-Scalar Dot(const List& l1, const List& l2);
 
 List Sum(const List& l, const Scalar& x);
 List Mul(const List& l, const Scalar& x);
@@ -58,6 +56,8 @@ List Div(const List& l, const Scalar& x);
 List Sum(const List& l1, const List& l2);
 List Mul(const List& l1, const List& l2);
 List Div(const List& l1, const List& l2);
+
+Scalar Dot(const List& l1, const List& l2);
 
 Scalar Mul(const Scalar& x1, const Scalar& x2);
 Scalar Div(const Scalar& x1, const Scalar& x2);

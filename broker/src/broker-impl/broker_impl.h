@@ -33,7 +33,7 @@ class Broker {
 
     void SendTaskToWorker(const task::Task& manager_task);
 
-    void SendTaskToWorkerImpl(const task::WorkerTaskId& worker_task);
+    void SendTaskToWorkerImpl(const task::WorkerTask& worker_task);
 
     void ReceiveManagerRequest();
 

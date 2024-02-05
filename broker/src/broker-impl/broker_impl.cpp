@@ -133,9 +133,9 @@ void Broker::SendTaskToWorkerFromQueue(const std::string& identity) {
     task::Task manager_task = task_queue_.back();
     task_queue_.pop();
 
-    task::WorkerTaskId worker_task;
+    task::WorkerTask worker_task;
     worker_task.set_identity(identity);
-    worker_task.set_allocated_id(new task::TaskId(manager_task.id()));
+    worker_task.set_allocated_task(new task::Task(manager_task));
 
     SendTaskToWorkerImpl(worker_task);
 }
@@ -160,15 +160,15 @@ void Broker::SendTaskToWorker(const task::Task& manager_task) {
 
         spdlog::info("Task was added to queue {}", manager_task);
     } else {
-        task::WorkerTaskId worker_task;
+        task::WorkerTask worker_task;
         worker_task.set_identity(it->first);
-        worker_task.set_allocated_id(new task::TaskId(manager_task.id()));
+        worker_task.set_allocated_task(new task::Task(manager_task));
 
         SendTaskToWorkerImpl(worker_task);
     }
 }
 
-void Broker::SendTaskToWorkerImpl(const task::WorkerTaskId& worker_task) {
+void Broker::SendTaskToWorkerImpl(const task::WorkerTask& worker_task) {
     worker_pub_.send(zmq::message_t(TOPIC), zmq::send_flags::sndmore);
     worker_pub_.send(zmq::message_t(worker_task.SerializeAsString()),
                      zmq::send_flags::none);

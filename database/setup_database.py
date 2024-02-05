@@ -27,7 +27,7 @@ with sqlite3.connect("database.db") as conn:
     k_list = db_pb2.List()
     k_list.values.extend([-6, -7, -11, -9, -10])
     k_serialized = db_pb2.Field()
-    l_serialized.list.CopyFrom(k_list)
+    k_serialized.list.CopyFrom(k_list)
 
     x_scalar = db_pb2.Scalar()
     x_scalar.value = 420

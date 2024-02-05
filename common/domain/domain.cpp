@@ -18,7 +18,7 @@ size_t ListHasher::operator()(const List& l) const {
 
 Scalar Mul(const List& l) {
     return std::reduce(
-        l.begin(), l.end(), Scalar{},
+        l.begin(), l.end(), Scalar{1},
         [](const Scalar& lhs, const Scalar& rhs) { return lhs * rhs; });
 }
 

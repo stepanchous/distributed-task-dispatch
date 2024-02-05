@@ -5,6 +5,7 @@
 
 #include <magic_enum/magic_enum.hpp>
 #include <stdexcept>
+#include <variant>
 
 #include "db.pb.h"
 #include "domain/domain.h"
@@ -237,6 +238,60 @@ struct fmt::formatter<db::Field> {
             return fmt::format_to(ctx.out(), "[Field] data: {}", field.list());
         } else {
             throw std::logic_error("Invalid message");
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<task::WorkerTask> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const task::WorkerTask& worker_task, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "[WorkerTask] identity: {}, task: {}",
+                              worker_task.identity(), worker_task.task());
+    }
+};
+
+template <>
+struct fmt::formatter<domain::List> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const domain::List& list, FormatContext& ctx) {
+        auto it = fmt::format_to(ctx.out(), "[List] list: ");
+
+        bool first = true;
+        for (const auto& value : list) {
+            if (first) {
+                it = fmt::format_to(ctx.out(), "({}", value);
+                first = false;
+                continue;
+            }
+
+            it = fmt::format_to(ctx.out(), ", {}", value);
+        }
+
+        it = fmt::format_to(ctx.out(), ")");
+
+        return it;
+    }
+};
+
+template <>
+struct fmt::formatter<domain::ExprResult> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const domain::ExprResult& expr_result, FormatContext& ctx) {
+        if (std::holds_alternative<domain::List>(expr_result)) {
+            return fmt::format_to(ctx.out(), "[ExprResult] expr_result: {}",
+                                  std::get<domain::List>(expr_result));
+        } else if (std::holds_alternative<domain::Scalar>(expr_result)) {
+            return fmt::format_to(ctx.out(), "[ExprResult] expr_result: {}",
+                                  std::get<domain::Scalar>(expr_result));
+        } else {
+            throw std::logic_error("Invalid variant");
         }
     }
 };

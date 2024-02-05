@@ -169,6 +169,7 @@ db::DynamicRecord DatabaseClient::BuildWriteRequest(
     auto field = new db::Field;
     std::visit(ExprResultVisitor(*field), expr_result);
 
+    request.set_allocated_record_id(dyn_id);
     request.set_allocated_field(field);
 
     return request;

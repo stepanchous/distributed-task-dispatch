@@ -9,6 +9,11 @@ message WorkerTaskId {
     TaskId id = 2;
 }
 
+message WorkerTask {
+    string identity = 7;
+    Task task = 8;
+}
+
 message WorkerMessage {
     oneof data {
         uint32 core_count = 4; 

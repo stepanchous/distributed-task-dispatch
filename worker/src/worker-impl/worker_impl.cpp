@@ -86,7 +86,7 @@ void Worker::ReadRequest() {
     subscriber_.recv(topic, zmq::recv_flags::none);
     subscriber_.recv(request, zmq::recv_flags::none);
 
-    auto task = FromMessage<task::WorkerTaskId>(request);
+    auto task = FromMessage<task::WorkerTask>(request);
 
     if (task.identity() != identity_) {
         return;

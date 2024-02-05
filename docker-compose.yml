@@ -53,8 +53,9 @@ services:
     environment:
       - ZMQ_SUB_ADDRESS=tcp://broker:5560
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w1
-      - CORE_COUNT=8
+      - CORE_COUNT=2
 
   worker2:
     image: worker
@@ -66,6 +67,7 @@ services:
     environment:
       - ZMQ_SUB_ADDRESS=tcp://broker:5560
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w2
       - CORE_COUNT=2
 
