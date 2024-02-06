@@ -19,4 +19,4 @@ WORKDIR /app
 
 EXPOSE 5300
 
-ENTRYPOINT ./client /app/ASTs/example0.json
+ENTRYPOINT ./client /app/ASTs/example3.json

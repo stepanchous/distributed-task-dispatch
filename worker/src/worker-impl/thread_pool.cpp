@@ -2,7 +2,6 @@
 #include <spdlog/spdlog.h>
 
 #include <string>
-#include <variant>
 
 #include "log_format/log_format.h"
 #include "thread_pool.h"
@@ -86,9 +85,7 @@ std::vector<domain::ExprResult> ThreadPool::ExtractOperands(
                 .task_id = operand.dyn_operand().id().task_id(),
             }));
         } else {
-            throw std::logic_error(
-                "Invalid message file:" + std::string(__FILE__) +
-                "; line:" + std::to_string(__LINE__));
+            throw std::logic_error("Invalid message");
         }
     }
 
@@ -99,10 +96,8 @@ domain::ExprResult ThreadPool::CalculateTaskImpl(
     domain::ExprType type, std::vector<domain::ExprResult> operands) {
     domain::ExprResult result;
 
-    auto destructured_operands = PrepareOperands(operands);
-
-    domain::ExprResult lhs = destructured_operands.first;
-    domain::ExprResult rhs = destructured_operands.second.value_or(0);
+    domain::ExprResult lhs = operands.front();
+    domain::ExprResult rhs = operands.back();
 
     switch (type) {
         case domain::ExprType::re_min:
@@ -174,17 +169,4 @@ domain::ExprResult ThreadPool::CalculateTaskImpl(
     }
 
     return result;
-}
-
-std::pair<domain::ExprResult, std::optional<domain::ExprResult>>
-ThreadPool::PrepareOperands(const std::vector<domain::ExprResult>& operands) {
-    if (operands.size() == 1) {
-        return std::make_pair(operands.front(), std::nullopt);
-    }
-
-    if (std::holds_alternative<domain::Scalar>(operands.front())) {
-        return std::make_pair(operands.back(), operands.front());
-    }
-
-    return std::make_pair(operands.back(), operands.front());
 }

@@ -8,9 +8,11 @@
 
 #include "computation.pb.h"
 #include "decomposition/ast.h"
+#include "decomposition/expression_visitors.h"
 #include "dispatch/dispatch.h"
 #include "dispatch/task_dealer.h"
 #include "grpc_server.h"
+#include "log_format/log_format.h"
 
 namespace env {
 
@@ -25,10 +27,7 @@ struct ExprResultVisitor {
 
     void operator()(const domain::List& list) {
         auto l = new dcmp::List;
-
-        for (const auto& value : list) {
-            l->add_values(value);
-        }
+        l->mutable_values()->Add(list.begin(), list.end());
 
         reply.set_allocated_list(l);
     }

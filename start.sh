@@ -21,6 +21,6 @@ docker build -t manager -f ./manager/Dockerfile .
 docker build -t client -f ./client/Dockerfile .
 docker build -t db_server -f ./database/Dockerfile .
 
-docker-compose up --scale client=20
+docker-compose up
 
 wait

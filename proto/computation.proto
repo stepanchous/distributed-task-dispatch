@@ -11,12 +11,12 @@ message AstRequest {
 }
 
 message List {
-    repeated uint32 values = 2;
+    repeated int32 values = 2;
 }
 
 message CalculationReply {
     oneof value {
-        uint32 scalar = 3;
+        int32 scalar = 3;
         List list = 4;
     }
 }

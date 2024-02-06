@@ -72,7 +72,7 @@ services:
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
       - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w2
-      - CORE_COUNT=4
+      - CORE_COUNT=2
 
   worker3:
     image: worker
@@ -86,7 +86,7 @@ services:
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
       - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w3
-      - CORE_COUNT=6
+      - CORE_COUNT=2
 
   worker4:
     image: worker
@@ -100,4 +100,4 @@ services:
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
       - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w4
-      - CORE_COUNT=16
+      - CORE_COUNT=2

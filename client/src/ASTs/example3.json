@@ -1,19 +1,44 @@
 {
     "ast": {
-        "so_sum": {
+        "so_div": {
             "lhs": {
-                "lo_dot": {
+                "so_max": {
                     "lhs": {
-                        "me_add":{
+                        "lo_dot": {
                             "lhs": {
-                                "scalar_var": "x"
-                            },
-                            "rhs": {
-                                "lo_mul": {
+                                "lo_add": {
                                     "lhs": {
-                                        "list": "L"
+                                        "list": "K"
                                     },
                                     "rhs": {
+                                        "list": "L"
+                                    }
+                                }
+                            },
+                            "rhs": {
+                                "lo_add": {
+                                    "lhs": {
+                                        "list": "K"
+                                    },
+                                    "rhs": {
+                                        "list": "L"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "rhs": {
+                        "so_mul": {
+                            "lhs": {
+                                "re_mul": {
+                                    "lhs": {
+                                        "list": "K"
+                                    }
+                                }
+                            },
+                            "rhs": {
+                                "re_mul": {
+                                    "lhs": {
                                         "list": "K"
                                     }
                                 }
@@ -23,42 +48,12 @@
                 }
             },
             "rhs": {
-                "so_mul": {
-                    "lhs" : {
-                        "so_min": {
-                            "lhs": {
-                                "re_mul": {
-                                    "lhs": {
-                                        "list": "L"
-                                    }
-                                }
-                            },
-                            "rhs": {
-                                "re_sum": {
-                                    "lhs": {
-                                        "list": "L"
-                                    }
-                                }
-                            }
-                        }
+                "so_mul":{
+                    "lhs": {
+                        "scalar_var": "x"
                     },
-                    "rhs" : {
-                        "so_max": {
-                            "lhs": {
-                                "re_mul": {
-                                    "lhs": {
-                                        "list": "L"
-                                    }
-                                }
-                            },
-                            "rhs": {
-                                "re_sum": {
-                                    "lhs": {
-                                        "list": "L"
-                                    }
-                                }
-                            }
-                        }
+                    "rhs": {
+                        "scalar_var": "x"
                     }
                 }
             }

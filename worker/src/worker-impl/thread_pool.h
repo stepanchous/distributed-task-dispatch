@@ -37,7 +37,4 @@ class ThreadPool {
 
     std::vector<domain::ExprResult> ExtractOperands(
         const task::WorkerTask& task);
-
-    static std::pair<domain::ExprResult, std::optional<domain::ExprResult>>
-    PrepareOperands(const std::vector<domain::ExprResult>& operands);
 };
