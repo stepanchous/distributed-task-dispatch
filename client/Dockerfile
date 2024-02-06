@@ -13,7 +13,7 @@ RUN dnf install -y \
     spdlog-devel
 
 ADD ../build/client/src/client /app/client
-ADD ../client/src/ASTs /app/ASTs
+ADD ../ASTs /app/ASTs
 
 WORKDIR /app
 
