@@ -26,12 +26,15 @@ services:
       - database
       - worker1
       - worker2
+      - worker3
+      - worker4
     build:
       context: .
       dockerfile: ./manager/Dockerfile
     environment:
       - ZMQ_BROKER_ADDRESS=tcp://broker:5559
       - GRPC_ADDRESS=0.0.0.0:5300
+      - DB_ADDRESS=dns:///database:5301
 
   client:
     image: client
@@ -69,5 +72,32 @@ services:
       - ZMQ_DEALER_ADDRESS=tcp://broker:5561
       - DB_ADDRESS=dns:///database:5301
       - WORKER_IDENTITY=w2
-      - CORE_COUNT=2
+      - CORE_COUNT=4
 
+  worker3:
+    image: worker
+    depends_on:
+      - broker
+    build: 
+      context: .
+      dockerfile: ./worker/Dockerfile
+    environment:
+      - ZMQ_SUB_ADDRESS=tcp://broker:5560
+      - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - DB_ADDRESS=dns:///database:5301
+      - WORKER_IDENTITY=w3
+      - CORE_COUNT=6
+
+  worker4:
+    image: worker
+    depends_on:
+      - broker
+    build: 
+      context: .
+      dockerfile: ./worker/Dockerfile
+    environment:
+      - ZMQ_SUB_ADDRESS=tcp://broker:5560
+      - ZMQ_DEALER_ADDRESS=tcp://broker:5561
+      - DB_ADDRESS=dns:///database:5301
+      - WORKER_IDENTITY=w4
+      - CORE_COUNT=16

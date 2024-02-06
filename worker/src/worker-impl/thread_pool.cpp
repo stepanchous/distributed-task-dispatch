@@ -1,6 +1,7 @@
 #include <grpcpp/grpcpp.h>
 #include <spdlog/spdlog.h>
 
+#include <string>
 #include <variant>
 
 #include "log_format/log_format.h"
@@ -84,6 +85,10 @@ std::vector<domain::ExprResult> ThreadPool::ExtractOperands(
                 .problem_id = operand.dyn_operand().id().problem_id(),
                 .task_id = operand.dyn_operand().id().task_id(),
             }));
+        } else {
+            throw std::logic_error(
+                "Invalid message file:" + std::string(__FILE__) +
+                "; line:" + std::to_string(__LINE__));
         }
     }
 

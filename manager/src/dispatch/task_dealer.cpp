@@ -21,7 +21,9 @@ BrokerConnection BrokerConnection::New() {
 }
 
 BrokerConnection::BrokerConnection(zmq::context_t context, zmq::socket_t dealer)
-    : context_(std::move(context)), broker_connection_(std::move(dealer)) {}
+    : context_(std::move(context)), broker_connection_(std::move(dealer)) {
+    poll_items_.push_back({broker_connection_, 0, ZMQ_POLLIN, 0});
+}
 
 void BrokerConnection::SendRequest(task::Task task) {
     auto res = broker_connection_.send(zmq::message_t(task.SerializeAsString()),
@@ -36,16 +38,18 @@ void BrokerConnection::SendRequest(task::Task task) {
 
 std::optional<task::TaskId> BrokerConnection::ReadReply() {
     zmq::message_t reply;
-    std::optional<size_t> byte_count =
-        broker_connection_.recv(reply, zmq::recv_flags::dontwait);
 
-    if (!byte_count.has_value()) {
-        return {};
+    zmq::poll(&poll_items_[0], 1, std::chrono::milliseconds(0));
+
+    if (poll_items_[0].revents & ZMQ_POLLIN) {
+        broker_connection_.recv(reply, zmq::recv_flags::none);
+
+        auto finished_task = FromMessage<task::TaskId>(reply);
+
+        spdlog::info("Manager <- Broker {}", finished_task);
+
+        return finished_task;
     }
 
-    auto finished_task = FromMessage<task::TaskId>(reply);
-
-    spdlog::info("Manager <- Broker {}", finished_task);
-
-    return finished_task;
+    return std::nullopt;
 }

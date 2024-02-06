@@ -30,9 +30,9 @@ TaskDecompositor TaskDecompositor::New(dcmp::AST ast) {
     return TaskDecompositor(std::move(graph), std::move(tasks));
 }
 
-std::unordered_map<dcmp::VertexDescriptor, dcmp::ExprData>
+std::unordered_map<dcmp::VertexDescriptor, domain::VariableId>
 TaskDecompositor::GetIndependentTasks() const {
-    std::unordered_map<dcmp::VertexDescriptor, dcmp::ExprData>
+    std::unordered_map<dcmp::VertexDescriptor, domain::VariableId>
         independent_tasks;
 
     for (const auto& task : tasks_) {
@@ -41,7 +41,8 @@ TaskDecompositor::GetIndependentTasks() const {
         if (task_type == domain::ExprType::list ||
             task_type == domain::ExprType::scalar_const ||
             task_type == domain::ExprType::scalar_var) {
-            independent_tasks.emplace(task, graph_[task].data);
+            independent_tasks.emplace(
+                task, std::get<domain::VariableId>(graph_[task].data));
         }
     }
 
@@ -50,13 +51,14 @@ TaskDecompositor::GetIndependentTasks() const {
 
 std::unordered_map<dcmp::VertexDescriptor, std::vector<dcmp::VertexDescriptor>>
 TaskDecompositor::GetComputableTasks(
-    const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks) const {
+    const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks,
+    const std::unordered_set<dcmp::VertexDescriptor>& excluded_tasks) const {
     std::unordered_map<dcmp::VertexDescriptor,
                        std::vector<dcmp::VertexDescriptor>>
         computable_task_to_dependencies;
 
     for (const auto& task : tasks_) {
-        if (!computed_tasks.contains(task)) {
+        if (!computed_tasks.contains(task) && !excluded_tasks.contains(task)) {
             auto [adjacent_vetices_first, adjacent_vetices_last] =
                 boost::adjacent_vertices(task, graph_);
             if (std::all_of(adjacent_vetices_first, adjacent_vetices_last,

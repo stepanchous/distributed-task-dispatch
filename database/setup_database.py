@@ -8,15 +8,16 @@ with sqlite3.connect("database.db") as conn:
         CREATE TABLE IF NOT EXISTS static_data (
             identifier TEXT PRIMARY KEY,
             data BLOB NOT NULL
-        )         
+        );        
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS dyn_data (
+        CREATE TABLE IF NOT EXISTS dynamic_data (
             problem_id INTEGER NOT NULL,
             task_id INTEGER NOT NULL,
-            data BLOB NOT NULL
-        )
+            data BLOB NOT NULL,
+            PRIMARY KEY (problem_id, task_id)
+        );
     ''')
 
     l_list = db_pb2.List()

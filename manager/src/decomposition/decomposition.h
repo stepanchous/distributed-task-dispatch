@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <unordered_set>
 #include <vector>
 
@@ -17,13 +16,15 @@ class TaskDecompositor {
 
     const std::vector<dcmp::VertexDescriptor>& GetSortedTasks() const;
 
-    std::unordered_map<dcmp::VertexDescriptor, dcmp::ExprData>
+    std::unordered_map<dcmp::VertexDescriptor, domain::VariableId>
     GetIndependentTasks() const;
 
     std::unordered_map<dcmp::VertexDescriptor,
                        std::vector<dcmp::VertexDescriptor>>
     GetComputableTasks(
-        const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks) const;
+        const std::unordered_set<dcmp::VertexDescriptor>& computed_tasks,
+        const std::unordered_set<dcmp::VertexDescriptor>& exclude_tasks = {})
+        const;
 
     std::vector<dcmp::VertexDescriptor> GetRequiredDependencies(
         dcmp::VertexDescriptor task) const;

@@ -1,8 +1,11 @@
+#include <spdlog/spdlog.h>
+
 #include <condition_variable>
 #include <fstream>
 #include <stdexcept>
 
 #include "grpc_client.h"
+#include "log_format/log_format.h"
 
 namespace {
 
@@ -31,6 +34,8 @@ DecompDispatchClient::DecompDispatchClient(
 
 bool DecompDispatchClient::CalculateProblem(const std::string& str) {
     dcmp::AstRequest request;
+    spdlog::info("Called calculate");
+
     request.set_str(str);
 
     dcmp::CalculationReply reply;
@@ -54,9 +59,8 @@ bool DecompDispatchClient::CalculateProblem(const std::string& str) {
         cv.wait(lock);
     }
 
-    std::cout << reply.value() << std::endl;
+    spdlog::info("Got result {}", reply);
 
-    // Act upon its status.
     return status.ok();
 }
 
@@ -67,8 +71,8 @@ void RunClient(const std::string& json_path) {
         std::getenv(env::GRPC_ADDRESS), grpc::InsecureChannelCredentials()));
 
     if (client.CalculateProblem(json_str)) {
-        std::cout << "Operation succeeded" << std::endl;
+        spdlog::info("Finished successfully");
     } else {
-        std::cerr << "Operation failed" << std::endl;
+        spdlog::error("Client failed");
     }
 }

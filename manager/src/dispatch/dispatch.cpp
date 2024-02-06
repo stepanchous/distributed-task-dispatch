@@ -4,33 +4,42 @@
 #include <cctype>
 #include <condition_variable>
 #include <mutex>
+#include <unordered_set>
 #include <utility>
-#include <variant>
 
 #include "dispatch.h"
-#include "domain/domain.h"
 #include "log_format/log_format.h"
 #include "task.pb.h"
 
-ProblemId Dispatcher::PROBLEM_ID = 0;
+namespace env {
+
+const char* DB_ADDRESS = "DB_ADDRESS";
+
+}
+
+Dispatcher::ProblemId Dispatcher::PROBLEM_ID = 0;
 
 Dispatcher::Dispatcher(BrokerConnection broker_connection)
-    : broker_connection_(std::move(broker_connection)) {}
+    : broker_connection_(std::move(broker_connection)),
+      db_client_(grpc::CreateChannel(std::getenv(env::DB_ADDRESS),
+                                     grpc::InsecureChannelCredentials())) {}
 
 void Dispatcher::RunDispatcher() {
     while (true) {
-        PollComputableTasks();
+        SendComputableTasks();
         UpdateComputableTasks();
     }
 }
 
-void Dispatcher::PollComputableTasks() {
+void Dispatcher::SendComputableTasks() {
     std::lock_guard l(m_);
     for (auto& [problem_id, calc_data] : problem_id_to_calculation_data_) {
         for (const auto& [task_id, dependencies] :
              calc_data.computable_task_to_dependencies) {
             broker_connection_.SendRequest(
                 FormTaskRequest(problem_id, task_id, dependencies));
+            calc_data.processed_tasks_to_status[task_id] =
+                TaskStatus::processing;
         }
 
         calc_data.computable_task_to_dependencies.clear();
@@ -43,43 +52,29 @@ void Dispatcher::UpdateComputableTasks() {
     if (!task_id.has_value()) {
         return;
     }
-}
-
-ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
-    CalculationData calc_data(dcmp::TaskDecompositor::New(std::move(ast)));
-
-    for (const auto& [task_id, expr_data] :
-         calc_data.decompositor.GetIndependentTasks()) {
-        DataId data_id;
-
-        data_id.name = std::get<domain::VariableId>(expr_data);
-        data_id.is_scalar = IsScalarVariable(data_id.name);
-
-        calc_data.computed_tasks[task_id] = data_id;
-    }
-
-    std::unordered_set<dcmp::VertexDescriptor> computed_tasks;
-
-    for (const auto& [task_id, _] : calc_data.computed_tasks) {
-        computed_tasks.emplace(task_id);
-    }
-
-    calc_data.computable_task_to_dependencies =
-        calc_data.decompositor.GetComputableTasks(computed_tasks);
-
-    ProblemId problem_id;
-    SyncData sync_data;
 
     {
-        std::lock_guard<std::mutex> l(m_);
-        problem_id = PROBLEM_ID;
-        problem_id_to_calculation_data_.emplace(problem_id,
-                                                std::move(calc_data));
-        problem_id_to_sync_data_.emplace(problem_id, sync_data);
-        ++PROBLEM_ID;
-        // Pass to Calculator and block mutex then release
-        // it when computation is done.
+        std::lock_guard l(m_);
+
+        if (task_id->task_id() ==
+            problem_id_to_calculation_data_.at(task_id->problem_id())
+                .decompositor.GetSortedTasks()
+                .back()) {
+            NotifyComputedProblem(task_id->problem_id(), task_id->task_id());
+        } else {
+            UpdateComputableTasksImpl(task_id->problem_id(),
+                                      task_id->task_id());
+        }
     }
+}
+
+domain::ExprResult Dispatcher::CalculateProblem(dcmp::AST ast) {
+    auto calc_data = CalculationData::New(std::move(ast));
+
+    SyncData sync_data;
+
+    ProblemId problem_id = PushProblem(calc_data, sync_data);
+    TaskId task_id = calc_data.decompositor.GetSortedTasks().back();
 
     spdlog::info("Manager got problem with id {}", problem_id);
 
@@ -90,16 +85,22 @@ ProblemId Dispatcher::CalculateProblem(dcmp::AST ast) {
         });
     }
 
-    // TODO: 1. Read result from storage
-    //       2. Lock mutex and remove this problems data from dispatcher
-    //       3. Notify storage that intermediate results can be deleted
+    ClearProblem(problem_id);
 
-    return PROBLEM_ID - 1;
+    domain::ExprResult expr_result =
+        db_client_.ReadData(DatabaseClient::DynRecordId{
+            .problem_id = problem_id,
+            .task_id = task_id,
+        });
+
+    db_client_.ClearIntermediateCalculations(problem_id);
+
+    return expr_result;
 }
 
 task::Task Dispatcher::FormTaskRequest(
-    ProblemId problem_id, dcmp::VertexDescriptor task_id,
-    const std::vector<dcmp::VertexDescriptor>& dependencies) const {
+    ProblemId problem_id, TaskId task_id,
+    const std::vector<TaskId>& dependencies) const {
     auto id = new task::TaskId;
     id->set_problem_id(problem_id);
     id->set_task_id(task_id);
@@ -120,30 +121,27 @@ task::Task Dispatcher::FormTaskRequest(
 }
 
 task::Operand Dispatcher::FormOperand(ProblemId problem_id,
-                                      dcmp::VertexDescriptor operand_id) const {
+                                      TaskId operand_id) const {
     task::Operand operand;
 
-    NodeResultId node_result = problem_id_to_calculation_data_.at(problem_id)
-                                   .computed_tasks.at(operand_id);
+    const CalculationData& calc_data =
+        problem_id_to_calculation_data_.at(problem_id);
 
-    if (std::holds_alternative<NodeId>(node_result)) {
-        auto id = new task::TaskId;
-        id->set_problem_id(problem_id);
-        id->set_task_id(operand_id);
-
-        task::DynOperand* dyn_operand = new task::DynOperand;
-        dyn_operand->set_allocated_id(id);
-        dyn_operand->set_is_scalar(std::get<NodeId>(node_result).is_scalar);
-
-        operand.set_allocated_dyn_operand(dyn_operand);
-    } else if (std::holds_alternative<DataId>(node_result)) {
-        task::StaticOperand* static_operand = new task::StaticOperand;
-        static_operand->set_identifier(std::get<DataId>(node_result).name);
-        static_operand->set_is_scalar(std::get<DataId>(node_result).is_scalar);
+    if (calc_data.task_to_variable_id.contains(operand_id)) {
+        auto static_operand = new task::StaticOperand;
+        static_operand->set_identifier(
+            calc_data.task_to_variable_id.at(operand_id));
 
         operand.set_allocated_static_operand(static_operand);
     } else {
-        assert(false);
+        auto task_id = new task::TaskId;
+        task_id->set_problem_id(problem_id);
+        task_id->set_task_id(operand_id);
+
+        task::DynOperand* dyn_operand = new task::DynOperand;
+        dyn_operand->set_allocated_id(task_id);
+
+        operand.set_allocated_dyn_operand(dyn_operand);
     }
 
     return operand;
@@ -156,4 +154,84 @@ bool Dispatcher::IsScalarVariable(const std::string& variable_id) {
 
 Dispatcher::CalculationData::CalculationData(
     dcmp::TaskDecompositor task_decompositor)
-    : decompositor(task_decompositor) {}
+    : decompositor(std::move(task_decompositor)) {}
+
+Dispatcher::CalculationData Dispatcher::CalculationData::New(dcmp::AST ast) {
+    CalculationData calc_data(dcmp::TaskDecompositor::New(std::move(ast)));
+
+    calc_data.task_to_variable_id =
+        calc_data.decompositor.GetIndependentTasks();
+
+    std::unordered_set<TaskId> computed_tasks;
+
+    for (const auto& [task_id, _] : calc_data.task_to_variable_id) {
+        calc_data.processed_tasks_to_status.emplace(task_id,
+                                                    TaskStatus::completed);
+        computed_tasks.emplace(task_id);
+    }
+
+    calc_data.computable_task_to_dependencies =
+        calc_data.decompositor.GetComputableTasks(computed_tasks);
+
+    return calc_data;
+}
+
+void Dispatcher::NotifyComputedProblem(ProblemId problem_id, TaskId task_id) {
+    problem_id_to_calculation_data_.at(problem_id)
+        .processed_tasks_to_status.at(task_id) = TaskStatus::completed;
+
+    SyncData& sync_data = problem_id_to_sync_data_.at(problem_id);
+
+    {
+        std::lock_guard cv_l(sync_data.cv_m);
+        sync_data.is_computed = true;
+    }
+
+    sync_data.cv.notify_all();
+}
+
+Dispatcher::ProblemId Dispatcher::PushProblem(CalculationData calc_data,
+                                              SyncData& sync_data) {
+    std::lock_guard<std::mutex> l(m_);
+
+    ProblemId problem_id = PROBLEM_ID;
+
+    problem_id_to_calculation_data_.emplace(problem_id, std::move(calc_data));
+    problem_id_to_sync_data_.emplace(problem_id, sync_data);
+
+    ++PROBLEM_ID;
+
+    return problem_id;
+}
+
+void Dispatcher::ClearProblem(Dispatcher::ProblemId problem_id) {
+    std::lock_guard l(m_);
+
+    problem_id_to_calculation_data_.erase(problem_id);
+    problem_id_to_sync_data_.erase(problem_id);
+}
+
+void Dispatcher::UpdateComputableTasksImpl(ProblemId problem_id,
+                                           TaskId task_id) {
+    CalculationData& calc_data = problem_id_to_calculation_data_.at(problem_id);
+
+    calc_data.processed_tasks_to_status.at(task_id) = TaskStatus::completed;
+
+    std::unordered_set<TaskId> computed_tasks;
+    std::unordered_set<TaskId> excluded_tasks;
+
+    for (const auto& [task_id, status] : calc_data.processed_tasks_to_status) {
+        switch (status) {
+            case TaskStatus::processing:
+                excluded_tasks.emplace(task_id);
+                break;
+            case TaskStatus::completed:
+                computed_tasks.emplace(task_id);
+                break;
+        }
+    }
+
+    calc_data.computable_task_to_dependencies =
+        calc_data.decompositor.GetComputableTasks(computed_tasks,
+                                                  excluded_tasks);
+}

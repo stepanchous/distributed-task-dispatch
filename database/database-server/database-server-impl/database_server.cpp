@@ -17,7 +17,7 @@ const char* DB_ADDRESS = "DB_ADDRESS";
 }  // namespace env
 
 void RunServer() {
-    SQLite::Database db(std::getenv(env::DB_PATH));
+    SQLite::Database db(std::getenv(env::DB_PATH), SQLite::OPEN_READWRITE);
 
     DatabaseServiceImpl service(std::move(db));
 
@@ -91,7 +91,7 @@ void DatabaseServiceImpl::WriteDynamicDataImpl(
 
     query.bind(1, dyn_record.record_id().problem_id());
     query.bind(2, dyn_record.record_id().task_id());
-    query.bind(3, dyn_record.field().SerializeAsString().data());
+    query.bind(3, dyn_record.field().SerializeAsString());
 
     query.exec();
 
@@ -114,9 +114,12 @@ db::Field DatabaseServiceImpl::ReadDataImpl(const db::RecordId& record_id) {
         const void* data = query.getColumn(2);
         size_t size = query.getColumn(2).size();
 
-        field.ParseFromArray(data, size);
+        if (!field.ParseFromArray(data, size)) {
+            throw std::logic_error("Corrupted database");
+        }
 
     } else if (record_id.has_static_id()) {
+        spdlog::info("Reading static data");
         SQLite::Statement query(db_,
                                 "SELECT * FROM static_data "
                                 "WHERE identifier = ?;");

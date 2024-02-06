@@ -6,7 +6,7 @@ if [[ ! -d "build" ]]; then
     mkdir build
 fi
 
-cmake -B build -S ./
+cmake -B build -S ./ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug
 cmake --build build -j6
 
 if [[ -e "database/database.db" ]]; then
@@ -21,6 +21,6 @@ docker build -t manager -f ./manager/Dockerfile .
 docker build -t client -f ./client/Dockerfile .
 docker build -t db_server -f ./database/Dockerfile .
 
-docker-compose up
+docker-compose up --scale client=20
 
 wait

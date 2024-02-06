@@ -18,8 +18,6 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gRPC REQUIRED)
 
-add_compile_definitions(SQLITE_THREADSAFE=1)
-
 set(DB_SERVER_IMPL_DIR database-server-impl)
 
 set(DB_SERVER_SOURCES

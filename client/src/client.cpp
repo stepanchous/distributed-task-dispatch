@@ -1,10 +1,10 @@
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "grpc-client/grpc_client.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Invalid number of arguments" << std::endl;
+        spdlog::error("Invalid number of arguments");
         return -1;
     }
 

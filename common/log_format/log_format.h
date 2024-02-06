@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <variant>
 
+#include "computation.pb.h"
 #include "db.pb.h"
 #include "domain/domain.h"
 #include "task.pb.h"
@@ -18,9 +19,8 @@ struct fmt::formatter<task::StaticOperand> {
 
     template <typename FormatContext>
     auto format(const task::StaticOperand& operand, FormatContext& ctx) {
-        return fmt::format_to(ctx.out(),
-                              "[StaticOperand] identifier: {}, is_scalar: {}",
-                              operand.identifier(), operand.is_scalar());
+        return fmt::format_to(ctx.out(), "[StaticOperand] identifier: {}",
+                              operand.identifier());
     }
 };
 
@@ -31,10 +31,8 @@ struct fmt::formatter<task::DynOperand> {
     template <typename FormatContext>
     auto format(const task::DynOperand& operand, FormatContext& ctx) {
         return fmt::format_to(
-            ctx.out(),
-            "[DynOperand] problem_id: {}, task_id: {}, is_scalar: {}",
-            operand.id().problem_id(), operand.id().task_id(),
-            operand.is_scalar());
+            ctx.out(), "[DynOperand] problem_id: {}, task_id: {}",
+            operand.id().problem_id(), operand.id().task_id());
     }
 };
 
@@ -292,6 +290,49 @@ struct fmt::formatter<domain::ExprResult> {
                                   std::get<domain::Scalar>(expr_result));
         } else {
             throw std::logic_error("Invalid variant");
+        }
+    }
+};
+
+template <>
+struct fmt::formatter<dcmp::List> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const dcmp::List& list, FormatContext& ctx) {
+        auto it = fmt::format_to(ctx.out(), "[List] list: ");
+
+        bool first = true;
+        for (const auto& value : list.values()) {
+            if (first) {
+                it = fmt::format_to(ctx.out(), "({}", value);
+                first = false;
+                continue;
+            }
+
+            it = fmt::format_to(ctx.out(), ", {}", value);
+        }
+
+        it = fmt::format_to(ctx.out(), ")");
+
+        return it;
+    }
+};
+
+template <>
+struct fmt::formatter<dcmp::CalculationReply> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const dcmp::CalculationReply& reply, FormatContext& ctx) {
+        if (reply.has_scalar()) {
+            return fmt::format_to(ctx.out(), "[CalculationReply] scalar: {}",
+                                  reply.scalar());
+        } else if (reply.has_list()) {
+            return fmt::format_to(ctx.out(), "[CalculationReply] list: {}",
+                                  reply.list());
+        } else {
+            throw std::logic_error("Invalid message");
         }
     }
 };

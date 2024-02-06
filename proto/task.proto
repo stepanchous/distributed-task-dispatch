@@ -4,13 +4,10 @@ package task;
 
 message StaticOperand {
     string identifier = 1;
-    bool is_scalar = 2;
 }
 
 message DynOperand {
     TaskId id = 3;
-    bool is_scalar = 5;
-    
 }
 
 message Operand {

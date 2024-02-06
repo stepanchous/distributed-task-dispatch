@@ -17,4 +17,5 @@ class BrokerConnection {
 
     zmq::context_t context_;
     zmq::socket_t broker_connection_;
+    std::vector<zmq::pollitem_t> poll_items_;
 };

@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 
+#include "computation.pb.h"
 #include "decomposition/ast.h"
 #include "dispatch/dispatch.h"
 #include "dispatch/task_dealer.h"
@@ -16,6 +17,29 @@ namespace env {
 const char* GRPC_ADDRESS = "GRPC_ADDRESS";
 
 }
+
+namespace {
+
+struct ExprResultVisitor {
+    ExprResultVisitor(dcmp::CalculationReply& reply) : reply(reply) {}
+
+    void operator()(const domain::List& list) {
+        auto l = new dcmp::List;
+
+        for (const auto& value : list) {
+            l->add_values(value);
+        }
+
+        reply.set_allocated_list(l);
+    }
+
+    void operator()(domain::Scalar scalar) { reply.set_scalar(scalar); }
+
+   private:
+    dcmp::CalculationReply& reply;
+};
+
+}  // namespace
 
 DecompDispatchServiceImpl::DecompDispatchServiceImpl(
     BrokerConnection broker_connection)
@@ -29,11 +53,10 @@ grpc::ServerUnaryReactor* DecompDispatchServiceImpl::CalculateProblem(
     std::istringstream input(request->str());
     auto ast = dcmp::AST::FromJson(input);
 
-    // TODO: Get Result
-    auto problem_id = dispatcher_.CalculateProblem(std::move(ast));
-    (void)problem_id;
+    domain::ExprResult expr_result =
+        dispatcher_.CalculateProblem(std::move(ast));
 
-    reply->set_value("hui");
+    std::visit(ExprResultVisitor(*reply), expr_result);
 
     grpc::ServerUnaryReactor* reactor = context->DefaultReactor();
 

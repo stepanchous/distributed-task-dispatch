@@ -12,6 +12,8 @@ add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-pedantic)
 
+find_package(spdlog REQUIRED)
+
 set(GRPC_CLIENT_DIR grpc-client)
 set(CLIENT_CONFIG_DIR client-config)
 set(PROTO_DIR proto)
@@ -27,3 +29,5 @@ set(CLIENT_SOURCES
 add_executable(client ${CLIENT_SOURCES})
 
 target_link_libraries(client PRIVATE proto-objects)
+target_link_libraries(client PRIVATE domain)
+target_link_libraries(client PRIVATE spdlog::spdlog)
