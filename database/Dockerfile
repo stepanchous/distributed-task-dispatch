@@ -20,8 +20,9 @@ RUN dnf install -y pip
 RUN pip install protobuf
 
 ADD ./build/database/database-server/db_server /app/db_server
-COPY ./database/setup_database.py /app/setup_database.py
-COPY ./database/db_pb2.py /app/db_pb2.py
+ADD ./database/setup_database.py /app/setup_database.py
+ADD ./database/db_pb2.py /app/db_pb2.py
+ADD ./database/data.json /app/data.json
 
 WORKDIR /app
 
