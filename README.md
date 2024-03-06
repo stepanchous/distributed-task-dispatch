@@ -8,7 +8,7 @@ A task is described as an abstract syntax tree that consists of operations and v
     <figure>
         <img src='./materials/ast.png' alt='missing' />
         <figcaption>Input AST</figcaption>
-    </figure>
+    </figure><br>
     <figure>
         <img src='./materials/dag.png' alt='missing' />
         <figcaption>Output DAG</figcaption>
