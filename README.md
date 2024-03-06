@@ -3,7 +3,7 @@
 This is a C++ 20 project that implements decomposition of user-defined task and distribute its calculation between workers. The system is asynchronous which allows to process multiple requests from users simultaneously. Another important property of the system is horizontal scalability. New workers can connect to network at runtime.
 
 ### Decomposition
-A task is described as an abstract syntax tree that consists of operations and variables. A variable can be a number or a list of numbers. Decomposition stage optimizes the tree by illuminating duplicate subtrees with [Link Value-Number algorithm](https://en.wikipedia.org/wiki/Value_numbering) forming directed acyclic graph. Then topological sort is performed in order to define computation sequence. Node of DAG will later be referenced as "atomic operation".
+A task is described as an abstract syntax tree that consists of operations and variables. A variable can be a number or a list of numbers. Decomposition stage optimizes the tree by illuminating duplicate subtrees with [Value-Number algorithm](https://en.wikipedia.org/wiki/Value_numbering) forming directed acyclic graph. Then topological sort is performed in order to define computation sequence. Node of DAG will later be referenced as "atomic operation".
 <details><summary>Example</summary>
     <p align="center">
         <figure>
