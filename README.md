@@ -5,15 +5,16 @@ This is a C++ 20 project that implements decomposition of user-defined task and 
 ### Decomposition
 A task is described as an abstract syntax tree that consists of operations and variables. A variable can be a number or a list of numbers. Decomposition stage optimizes the tree by illuminating duplicate subtrees with [Link Value-Number algorithm](https://en.wikipedia.org/wiki/Value_numbering) forming directed acyclic graph. Then topological sort is performed in order to define computation sequence. Node of DAG will later be referenced as "atomic operation".
 <details><summary>Example</summary>
-    <figure>
-        <img src='./materials/ast.png' alt='missing' />
-        <figcaption>Input AST</figcaption>
-    </figure><br>
-    <figure>
-        <img src='./materials/dag.png' alt='missing' />
-        <figcaption>Output DAG</figcaption>
-    </figure>
-
+    <center>
+        <figure>
+            <img src='./materials/ast.png' alt='missing' /><br>
+            <figcaption>Input AST</figcaption>
+        </figure><br>
+        <figure>
+            <img src='./materials/dag.png' alt='missing' /><br>
+            <figcaption>Output DAG</figcaption>
+        </figure>
+    </center>
 </details>
 
 ### Dispatching
